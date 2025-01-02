@@ -1,0 +1,84 @@
+/* Sidebar Styles */
+.sidebar-wrapper {
+    width: 250px;
+    background-color: #333;
+    color: white;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    transition: transform 0.3s ease; /* Smooth transition when toggling sidebar */
+  }
+  
+  .sidebar-main {
+    padding-top: 20px;
+  }
+  
+  .sidebar-links {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  
+  .sidebar-list {
+    margin: 10px 0;
+  }
+  
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: white;
+  }
+  
+  .sidebar-link i {
+    margin-right: 10px;
+  }
+  
+  .sidebar-link:hover {
+    background-color: #444;
+  }
+  
+  .sidebar-title {
+    font-weight: bold;
+  }
+  
+  .sidebar-submenu {
+    display: none; /* Hidden by default */
+    padding-left: 20px;
+  }
+  
+  .sidebar-submenu.d-block {
+    display: block; /* Show submenu when active */
+  }
+  
+  .sidebar-submenu a {
+    display: block;
+    color: white;
+    padding: 8px 10px;
+    text-decoration: none;
+  }
+  
+  .sidebar-submenu a:hover {
+    background-color: #555;
+  }
+  
+  /* Sidebar toggle effect for small screens */
+  @media (max-width: 768px) {
+    .sidebar-wrapper {
+      width: 0; /* Initially hidden */
+      transform: translateX(-100%); /* Sidebar goes off-screen */
+    }
+  
+    .sidebar-wrapper.show {
+      width: 250px; /* Show sidebar when active */
+      transform: translateX(0); /* Sidebar comes into view */
+    }
+    
+    .sidebar-main {
+      padding-top: 15px; /* Adjust padding for smaller screens */
+    }
+  }
+  
