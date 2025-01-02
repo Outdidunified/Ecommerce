@@ -1,4 +1,6 @@
-const db = require('../../config/db');
+
+//const db=require('../admin/config/db');
+const db=require('D:\\BackendEcommerce\\Ecommerce\\BACKEND\\ADMIN\\config\\db.js')
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt'); 
 // Signup function

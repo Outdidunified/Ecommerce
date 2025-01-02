@@ -1,4 +1,6 @@
-const connection = require('../../config/db'); // Import the connection object
+
+//const connection=require('../admin/config/db');// Import the connection object
+const connection=require('D:\\BackendEcommerce\\Ecommerce\\BACKEND\\ADMIN\\config\\db.js')
 const checkCategoryExists = (category_name, callback) => {
   const query = 'SELECT * FROM main_categor WHERE category_name = ?';
   connection.query(query, [category_name], (err, results) => {

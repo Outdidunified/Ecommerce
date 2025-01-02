@@ -1,4 +1,5 @@
-const db = require('../../config/db');
+
+const db=require('D:\\BackendEcommerce\\Ecommerce\\BACKEND\\ADMIN\\config\\db.js')
 
 // Function to add a role
 exports.addRole = (req, res) => {

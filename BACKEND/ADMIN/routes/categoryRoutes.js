@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-//const categoryController = require('ADmin/controllers/category/categorycontroller'); 
-const categoryController=require('../ADMIN/controllers/category/categorycontroller') ;// Correct relative path
+const categoryController=require('../controllers/category/categorycontroller') ;// Correct relative path
 
 // Route to add a new category (POST)
 router.post('/add', categoryController.addCategory);

@@ -3,9 +3,9 @@ const cors = require('cors');
 require('dotenv').config({ path: './config/.env' });
 const path = require('path');  // Add this line to import the path module
 
-const adminRoutes = require('./routes/adminRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
-const productRoutes = require('./routes/productRoutes');
+const adminRoutes=require('../ADMIN/routes/adminRoutes');
+const categoryRoutes = require('../ADMIN/routes/categoryRoutes');
+const productRoutes = require('../ADMIN/routes/productRoutes');
 const roleRoutes = require('./routes/roleRoutes'); // Added role routes
 
 const app = express();

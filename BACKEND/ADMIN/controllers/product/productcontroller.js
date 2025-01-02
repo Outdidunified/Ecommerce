@@ -1,4 +1,6 @@
-const db = require('../../config/db');
+
+//const db=require('../admin/config/db');
+const db=require('D:\\BackendEcommerce\\Ecommerce\\BACKEND\\ADMIN\\config\\db.js')
 exports.addProduct = (req, res) => {
   const { product_name, price, unit, quantity, exchangable, refundable, created_by, description, category_id, sub_category_id } = req.body;
 
