@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://192.168.1.41:6382",
+  "proxy": "http://192.168.1.22:6382",
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -13,6 +13,7 @@
     "feather-icons": "^4.29.2",
     "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
+    "react-custom-alert": "^1.0.4",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",
