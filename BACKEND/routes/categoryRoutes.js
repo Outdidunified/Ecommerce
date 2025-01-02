@@ -14,7 +14,7 @@ router.post('/deletecategory', categoryController.deleteCategory);
 router.post('/deletesubcategory', categoryController.deleteSubCategory);
 router.get('/categoryname', categoryController.getcategory);
 router.post('/subcategorylist', categoryController.getsubcateg);
-router.post('/getProducts', categoryController.getProducts);
+
 
 //router.get('/categoryname', categoryController.getcategory);
 //router.get('/productundercategory', categoryController.getCategoryHierarchy);

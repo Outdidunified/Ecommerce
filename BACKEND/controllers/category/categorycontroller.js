@@ -327,41 +327,7 @@ exports.getAllSubCategories = (req, res) => {
 };
 
 
-exports.getProducts = (req, res) => {
-  const { sub_category_id } = req.body;
 
-  if (!sub_category_id) {
-    return res.status(400).send({ message: 'sub_category_id is required' });
-  }
-
-  const query = 'SELECT * FROM product WHERE sub_category_id = ?';
-
-  connection.query(query, [sub_category_id], (err, results) => {
-    if (err) {
-      return res.status(500).send({ message: 'Error fetching products', error: err.message });
-    }
-
-    const products = results.map(product => ({
-      product_id: product.product_id,
-      product_name: product.product_name,
-      price: product.price,
-      unit: product.unit,
-      quantity: product.quantity,
-      exchangable: product.exchangable,
-      refundable: product.refundable,
-      created_by: product.created_by,
-      description: product.description,
-      image: `/${product.image}`,  
-      image2: `/${product.image2}`,
-      status: product.status,
-      modified_by: product.modified_by,
-      modified_date: product.modified_date,
-      created_date: product.created_date
-  }));
-
-  res.status(200).send({ products });
-});
-};
 
 exports.deleteCategory = (req, res) => {
   const { category_id, modified_by, status } = req.body;  // Extract category_id, modified_by, and status from request body
