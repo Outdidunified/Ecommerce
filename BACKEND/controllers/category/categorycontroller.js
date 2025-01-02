@@ -1,12 +1,11 @@
-
 const connection = require('../../config/db'); // Import the connection object
 const checkCategoryExists = (category_name, callback) => {
   const query = 'SELECT * FROM main_categor WHERE category_name = ?';
   connection.query(query, [category_name], (err, results) => {
-      if (err) {
-          return callback(err, null);
-      }
-      return callback(null, results.length > 0);
+    if (err) {
+      return callback(err, null);
+    }
+    return callback(null, results.length > 0);
   });
 };
 
@@ -16,27 +15,27 @@ exports.addCategory = (req, res) => {
 
   // Validate input fields
   if (!category_name || !created_by) {
-      return res.status(400).send({ message: 'Category name and created_by are required' });
+    return res.status(400).send({ message: 'Category name and created_by are required' });
   }
 
   // Check if category already exists
   checkCategoryExists(category_name, (err, exists) => {
+    if (err) {
+      return res.status(500).send({ message: 'Error checking category existence', error: err.message });
+    }
+
+    if (exists) {
+      return res.status(400).send({ message: 'Category already exists' });
+    }
+
+    // Insert the new category if it doesn't exist
+    const query = 'INSERT INTO main_categor (category_name, created_by) VALUES (?, ?)';
+    connection.query(query, [category_name, created_by], (err, result) => {
       if (err) {
-          return res.status(500).send({ message: 'Error checking category existence', error: err.message });
+        return res.status(500).send({ message: 'Error adding category', error: err.message });
       }
-
-      if (exists) {
-          return res.status(400).send({ message: 'Category already exists' });
-      }
-
-      // Insert the new category if it doesn't exist
-      const query = 'INSERT INTO main_categor (category_name, created_by) VALUES (?, ?)';
-      connection.query(query, [category_name, created_by], (err, result) => {
-          if (err) {
-              return res.status(500).send({ message: 'Error adding category', error: err.message });
-          }
-          res.status(200).send({ message: 'Category added successfully', category_id: result.insertId });
-      });
+      res.status(200).send({ message: 'Category added successfully', category_id: result.insertId });
+    });
   });
 };
 
@@ -44,10 +43,10 @@ exports.addCategory = (req, res) => {
 const checkSubCategoryExists = (main_category_id, sub_category_name, callback) => {
   const query = 'SELECT * FROM sub_categor WHERE main_category_id = ? AND sub_category_name = ?';
   connection.query(query, [main_category_id, sub_category_name], (err, results) => {
-      if (err) {
-          return callback(err, null);
-      }
-      return callback(null, results.length > 0);
+    if (err) {
+      return callback(err, null);
+    }
+    return callback(null, results.length > 0);
   });
 };
 
@@ -57,27 +56,27 @@ exports.addSubCategory = (req, res) => {
 
   // Validate input fields
   if (!main_category_id || !sub_category_name || !created_by) {
-      return res.status(400).send({ message: 'Main category ID, subcategory name, and created_by are required' });
+    return res.status(400).send({ message: 'Main category ID, subcategory name, and created_by are required' });
   }
 
   // Check if subcategory already exists under the given main category
   checkSubCategoryExists(main_category_id, sub_category_name, (err, exists) => {
+    if (err) {
+      return res.status(500).send({ message: 'Error checking subcategory existence', error: err.message });
+    }
+
+    if (exists) {
+      return res.status(400).send({ message: 'Subcategory already exists under this category' });
+    }
+
+    // Insert the new subcategory if it doesn't exist
+    const query = 'INSERT INTO sub_categor (main_category_id, sub_category_name, created_by) VALUES (?, ?, ?)';
+    connection.query(query, [main_category_id, sub_category_name, created_by], (err, result) => {
       if (err) {
-          return res.status(500).send({ message: 'Error checking subcategory existence', error: err.message });
+        return res.status(500).send({ message: 'Error adding subcategory', error: err.message });
       }
-
-      if (exists) {
-          return res.status(400).send({ message: 'Subcategory already exists under this category' });
-      }
-
-      // Insert the new subcategory if it doesn't exist
-      const query = 'INSERT INTO sub_categor (main_category_id, sub_category_name, created_by) VALUES (?, ?, ?)';
-      connection.query(query, [main_category_id, sub_category_name, created_by], (err, result) => {
-          if (err) {
-              return res.status(500).send({ message: 'Error adding subcategory', error: err.message });
-          }
-          res.status(200).send({ message: 'Subcategory added successfully', sub_category_id: result.insertId });
-      });
+      res.status(200).send({ message: 'Subcategory added successfully', sub_category_id: result.insertId });
+    });
   });
 };
 
@@ -85,7 +84,7 @@ exports.addSubCategory = (req, res) => {
 exports.getAllCategories = (req, res) => {
   // Query to fetch all main categories
   const query = 'SELECT * FROM main_categor WHERE status = TRUE';
-  
+
   connection.query(query, (err, mainCategories) => {
     if (err) {
       return res.status(500).send({ message: 'Error fetching main categories', error: err.message });
@@ -103,7 +102,7 @@ exports.getAllCategories = (req, res) => {
     const fetchSubCategoriesPromises = mainCategories.map((mainCategory) => {
       return new Promise((resolve, reject) => {
         const subCategoryQuery = 'SELECT * FROM sub_categor WHERE main_category_id = ? AND status = TRUE';
-        
+
         connection.query(subCategoryQuery, [mainCategory.category_id], (err, subCategories) => {
           if (err) {
             reject({ message: 'Error fetching subcategories', error: err.message });
@@ -174,9 +173,6 @@ exports.updateCategory = (req, res) => {
 };
 
 
-
-
-
 // Function to update a subcategory
 exports.updateSubCategory = (req, res) => {
   const { sub_category_id, main_category_id, sub_category_name, modified_by } = req.body;  // Extract values from request body
@@ -222,29 +218,26 @@ exports.updateSubCategory = (req, res) => {
 
 
 
-
-
-
 exports.getsubCategories = (req, res) => {
   const query = 'SELECT category_id, category_name, created_by, status,created_date,modified_by,modified_date FROM main_categor';
 
   connection.query(query, (err, results) => {
-      if (err) {
-          return res.status(500).send({ message: 'Error fetching categories', error: err.message });
-      }
+    if (err) {
+      return res.status(500).send({ message: 'Error fetching categories', error: err.message });
+    }
 
-      // Return the list of categories
-      res.status(200).send({
-          message: 'Categories retrieved successfully',
-          categories: results,
-      });
+    // Return the list of categories
+    res.status(200).send({
+      message: 'Categories retrieved successfully',
+      categories: results,
+    });
   });
 };
 
 exports.getcategory = (req, res) => {
   // Query to get categories from the database
   const query = 'SELECT category_id, category_name FROM main_categor';
-  
+
   connection.query(query, (err, results) => {
     if (err) {
       return res.status(500).json({ message: 'Error fetching categories', error: err.message });
@@ -308,31 +301,67 @@ exports.getAllSubCategories = (req, res) => {
   `;
 
   connection.query(query, (err, results) => {
-      if (err) {
-          return res.status(500).send({
-              status: 'error',
-              message: 'Error fetching subcategories',
-              error: err.message
-          });
-      }
-
-      // If no subcategories are found
-      if (results.length === 0) {
-          return res.status(404).send({
-              status: 'error',
-              message: 'No subcategories found'
-          });
-      }
-
-      // Return the list of subcategories along with their status
-      res.status(200).send({
-          status: 'success',
-          message: 'Subcategories retrieved successfully',
-          subcategories: results
+    if (err) {
+      return res.status(500).send({
+        status: 'error',
+        message: 'Error fetching subcategories',
+        error: err.message
       });
+    }
+
+    // If no subcategories are found
+    if (results.length === 0) {
+      return res.status(404).send({
+        status: 'error',
+        message: 'No subcategories found'
+      });
+    }
+
+    // Return the list of subcategories along with their status
+    res.status(200).send({
+      status: 'success',
+      message: 'Subcategories retrieved successfully',
+      subcategories: results
+    });
   });
 };
 
+
+exports.getProducts = (req, res) => {
+  const { sub_category_id } = req.body;
+
+  if (!sub_category_id) {
+    return res.status(400).send({ message: 'sub_category_id is required' });
+  }
+
+  const query = 'SELECT * FROM product WHERE sub_category_id = ?';
+
+  connection.query(query, [sub_category_id], (err, results) => {
+    if (err) {
+      return res.status(500).send({ message: 'Error fetching products', error: err.message });
+    }
+
+    const products = results.map(product => ({
+      product_id: product.product_id,
+      product_name: product.product_name,
+      price: product.price,
+      unit: product.unit,
+      quantity: product.quantity,
+      exchangable: product.exchangable,
+      refundable: product.refundable,
+      created_by: product.created_by,
+      description: product.description,
+      image: `/${product.image}`,  
+      image2: `/${product.image2}`,
+      status: product.status,
+      modified_by: product.modified_by,
+      modified_date: product.modified_date,
+      created_date: product.created_date
+  }));
+
+  res.status(200).send({ products });
+});
+};
 
 exports.deleteCategory = (req, res) => {
   const { category_id, modified_by, status } = req.body;  // Extract category_id, modified_by, and status from request body
@@ -419,77 +448,5 @@ exports.deleteSubCategory = (req, res) => {
 
       res.status(200).send({ message: `Subcategory status updated to ${statusMessage}` });
     });
-  });
-};
-
-
-exports.getCategoryHierarchy = (req, res) => {
-  // Query to fetch all categories
-  const categoryQuery = 'SELECT * FROM main_categor WHERE status = TRUE';
-
-  connection.query(categoryQuery, (err, categories) => {
-    if (err) {
-      return res.status(500).send({ message: 'Error fetching categories', error: err.message });
-    }
-
-    if (categories.length === 0) {
-      return res.status(404).send({ message: 'No categories found' });
-    }
-
-    const categoryData = [];
-
-    // Process each category to fetch its subcategories and products
-    const categoryPromises = categories.map((category) => {
-      return new Promise((resolve, reject) => {
-        const subCategoryQuery = `
-          SELECT * FROM sub_categor 
-          WHERE main_category_id = ? AND status = TRUE`;
-
-        connection.query(subCategoryQuery, [category.category_id], (err, subCategories) => {
-          if (err) {
-            reject({ message: 'Error fetching subcategories', error: err.message });
-          } else {
-            const subCategoryPromises = subCategories.map((subCategory) => {
-              return new Promise((resolveSub, rejectSub) => {
-                const productQuery = `
-                  SELECT * FROM product 
-                  WHERE category_id = ? AND sub_category_id = ?`;
-
-                connection.query(productQuery, [category.category_id, subCategory.sub_category_id], (err, products) => {
-                  if (err) {
-                    rejectSub({ message: 'Error fetching products', error: err.message });
-                  } else {
-                    resolveSub({
-                      ...subCategory,
-                      products
-                    });
-                  }
-                });
-              });
-            });
-
-            // Wait for all subcategories to fetch their products
-            Promise.all(subCategoryPromises)
-              .then((subCategoryData) => {
-                categoryData.push({
-                  ...category,
-                  subcategories: subCategoryData
-                });
-                resolve();
-              })
-              .catch(reject);
-          }
-        });
-      });
-    });
-
-    // Wait for all categories to process
-    Promise.all(categoryPromises)
-      .then(() => {
-        res.status(200).send({ categories: categoryData });
-      })
-      .catch((err) => {
-        res.status(500).send({ message: err.message });
-      });
   });
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config({ path: './config/.env' });
+const path = require('path');  // Add this line to import the path module
 
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -16,7 +17,8 @@ app.use('/admin', adminRoutes);  // Routes for admin
 app.use('/user', userRoutes);    // Routes for users
 app.use('/categories', categoryRoutes);
 app.use('/products', productRoutes);
-app.use('/roles', roleRoutes);   // Routes for roles
+app.use('/roles', roleRoutes); 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));  // Serve static files from the uploads directory
 
 const HTTP_PORT = process.env.HTTP_PORT || 6382;
 app.listen(HTTP_PORT, () => {

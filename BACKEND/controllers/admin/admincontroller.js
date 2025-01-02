@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 // Signup function
 exports.signup = (req, res) => {
   const { username, email_id, password, user_type } = req.body;
+  console.log(req.body);
 
   if (!username || !email_id || !password || !user_type) {
     return res.status(400).json({ message: 'Username, email, password, and user type are required' });
@@ -47,6 +48,7 @@ exports.signup = (req, res) => {
 
 exports.signin = (req, res) => {
   const { email_id, password } = req.body;
+  console.log(req.body);
 
   if (!email_id || !password) {
     return res.status(400).json({ message: 'Email and password are required' });

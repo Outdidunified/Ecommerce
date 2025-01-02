@@ -4,12 +4,10 @@ const path = require('path');
 // Define storage options for Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Set destination directory where the files will be stored
-    cb(null, './uploads/');
+    cb(null, './uploads/'); // Set file storage location
   },
   filename: (req, file, cb) => {
-    // Set file naming convention (avoid name conflicts)
-    cb(null, Date.now() + path.extname(file.originalname));
+    cb(null, Date.now() + path.extname(file.originalname)); // Set unique filename
   },
 });
 
@@ -27,7 +25,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Set file size limit (10 MB in this example)
+  limits: { fileSize: 10 * 1024 * 1024 }, // Set file size limit (10 MB)
 });
 
 module.exports = upload;
