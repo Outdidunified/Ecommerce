@@ -51,7 +51,7 @@ function App() {
         setAdminData(adminData);
 
         sessionStorage.setItem('authToken', token);
-        alert(token);
+     
         sessionStorage.setItem('adminData', JSON.stringify(adminData));
     };
 
@@ -60,8 +60,7 @@ function App() {
         setToken(null);
         setLoggedIn(false);
         setAdminData(null);
-        alert(token);
-
+  
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('adminData');
     };
