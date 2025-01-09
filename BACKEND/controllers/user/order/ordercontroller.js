@@ -178,9 +178,6 @@ exports.paymentsuccess = (req, res) => {
   });
 };
 
-  
-
-// 5. Payment Failure Callback
 exports.failure= (req, res) => {
   const { razorpay_payment_id, order_id } = req.body;
 
@@ -207,7 +204,7 @@ exports.getOrderDetailsForUser = (req, res) => {
       o.order_id,
       o.total_price,
       o.status AS order_status,
-      o.tracking_code,  -- Include tracking_code in the query
+      o.tracking_code,
       o.created_date,
       o.expected_delivery_date,
       p.payment_status,
@@ -249,45 +246,43 @@ exports.getOrderDetailsForUser = (req, res) => {
 
     // Map the results to the desired format
     const parsedResult = result.map(order => {
-      let formattedDate = null;
+      let formattedCreatedDate = null;
 
-      // Format created_date as "DD Month YYYY"
+      // Format created_date as "DD/MM/YYYY"
       if (order.created_date) {
         const createdDate = new Date(order.created_date);
-        const day = createdDate.getDate();
-        const month = createdDate.toLocaleString('en-US', { month: 'long' });
-        const year = createdDate.getFullYear();
-        formattedDate = `${day} ${month} ${year}`;
+        formattedCreatedDate = `${createdDate.getDate().toString().padStart(2, '0')}/${(createdDate.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}/${createdDate.getFullYear()}`;
       }
 
       let formattedDeliveryDate = null;
 
-      // Format expected_delivery_date based on order status
+      // Format expected_delivery_date as "DD/MM/YYYY"
       if (
-        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched'].includes(order.order_status) && 
+        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status) &&
         order.expected_delivery_date
       ) {
         const date = new Date(order.expected_delivery_date);
-        const day = date.getDate();
-        const month = date.toLocaleString('en-US', { month: 'long' });
-        const year = date.getFullYear();
-        formattedDeliveryDate = `${day} ${month} ${year}`;
+        formattedDeliveryDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}/${date.getFullYear()}`;
       }
 
       // Parse items field into an array of objects
       const items = order.items ? JSON.parse(`[${order.items}]`) : [];
 
-      // Check if payment is completed and order is confirmed, shipped, dispatched, or out for delivery for tracking code
+      // Check if payment is completed and order is eligible for tracking code
       const showTrackingCode = order.payment_status === 'Completed' && 
-        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched'].includes(order.order_status);
+        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status);
 
       // Map the order response into the desired structure
       const orderResponse = {
         order_id: order.order_id,
         total_price: order.total_price,
         order_status: order.order_status,
-        created_date: formattedDate || order.created_date,
-        expected_delivery_date: formattedDeliveryDate || (order.order_status === 'Pending' || order.order_status === 'Canceled' ? null : order.expected_delivery_date),
+        created_date: formattedCreatedDate, // Include formatted created_date
+        expected_delivery_date: formattedDeliveryDate, // Include formatted expected_delivery_date
         payment_status: order.payment_status,
         razorpay_payment_id: order.razorpay_payment_id,
         user_name: order.user_name,
@@ -297,7 +292,6 @@ exports.getOrderDetailsForUser = (req, res) => {
         state: order.state,
         house_no: order.house_no,
         road_name: order.road_name,
-        // Only include tracking_code if payment is completed and order is confirmed, shipped, dispatched, or out for delivery
         tracking_code: showTrackingCode ? order.tracking_code : null,  
         items: items.map(item => ({
           product_id: item.product_id,
@@ -306,8 +300,13 @@ exports.getOrderDetailsForUser = (req, res) => {
           price: item.price,
           total_price: item.total_price,
           product_image: item.product_image ? `/${item.product_image}` : null,
-        }))
+        })),
       };
+
+      // Exclude expected_delivery_date for Pending or Canceled orders
+      if (order.order_status === 'Pending' || order.order_status === 'Canceled') {
+        delete orderResponse.expected_delivery_date;
+      }
 
       return orderResponse;
     });
@@ -318,6 +317,7 @@ exports.getOrderDetailsForUser = (req, res) => {
     });
   });
 };
+
 
 
 

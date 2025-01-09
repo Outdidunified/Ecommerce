@@ -1,5 +1,4 @@
 const db=require('../../../config/db');
-
 exports.getAllOrdersForAdmin = (req, res) => {
   const query = `
     SELECT 
@@ -7,10 +6,10 @@ exports.getAllOrdersForAdmin = (req, res) => {
       o.total_price,
       o.status AS order_status,
       o.created_date, 
-      o.tracking_code, -- Add tracking_code to the query
+      o.tracking_code,
       o.expected_delivery_date,
       p.payment_status,
-      p.razorpay_payment_id,  -- Add razorpay_payment_id here
+      p.razorpay_payment_id,
       u.user_id,
       u.username AS username,  
       d.name AS delivery_name,
@@ -50,37 +49,38 @@ exports.getAllOrdersForAdmin = (req, res) => {
     const parsedResult = result.map(order => {
       let formattedCreatedDate = null;
 
-      // Format created_date as "DD Month YYYY"
+      // Format created_date as "DD/MM/YYYY"
       if (order.created_date) {
         const createdDate = new Date(order.created_date);
-        const day = createdDate.getDate();
-        const month = createdDate.toLocaleString('en-US', { month: 'long' });
-        const year = createdDate.getFullYear();
-        formattedCreatedDate = `${day} ${month} ${year}`;
+        formattedCreatedDate = `${createdDate.getDate().toString().padStart(2, '0')}/${(createdDate.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}/${createdDate.getFullYear()}`;
       }
 
       let formattedDeliveryDate = null;
 
-      // Show the expected_delivery_date only if the order is confirmed, shipped, out for delivery, or dispatched
+      // Format expected_delivery_date as "DD/MM/YYYY"
       if (
-        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched'].includes(order.order_status) && 
-        order.expected_delivery_date
+        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status)
       ) {
-        const date = new Date(order.expected_delivery_date);
-        const day = date.getDate();
-        const month = date.toLocaleString('en-US', { month: 'long' });
-        const year = date.getFullYear();
-        formattedDeliveryDate = `${day} ${month} ${year}`;
+        if (order.expected_delivery_date) {
+          const date = new Date(order.expected_delivery_date);
+          formattedDeliveryDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+            .toString()
+            .padStart(2, '0')}/${date.getFullYear()}`;
+        } else {
+          formattedDeliveryDate = null;
+        }
       }
 
       const orderResponse = {
         order_id: order.order_id,
         total_price: order.total_price,
         order_status: order.order_status,
-        created_date: formattedCreatedDate,  // Include created_date
-        expected_delivery_date: formattedDeliveryDate || null,  // Only include if formatted
+        created_date: formattedCreatedDate, // Include formatted created_date
+        expected_delivery_date: formattedDeliveryDate, // Include formatted expected_delivery_date
         payment_status: order.payment_status,
-        razorpay_payment_id: order.razorpay_payment_id,  // Include razorpay_payment_id
+        razorpay_payment_id: order.razorpay_payment_id, // Include razorpay_payment_id
         user_id: order.user_id,
         username: order.username,
         delivery_name: order.delivery_name,
@@ -90,17 +90,12 @@ exports.getAllOrdersForAdmin = (req, res) => {
         state: order.state,
         house_no: order.house_no,
         road_name: order.road_name,
-        // Include tracking_code for confirmed, shipped, out for delivery, or dispatched orders (removed 'Delivered')
-        tracking_code: ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched'].includes(order.order_status) ? order.tracking_code : null,
+        tracking_code: ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status) ? order.tracking_code : null,
+
         items: order.items ? JSON.parse(`[${order.items}]`) : [], // Parse items JSON
       };
 
-      // Only include expected_delivery_date if the order is confirmed, shipped, out for delivery, or dispatched
-      if (formattedDeliveryDate) {
-        orderResponse.expected_delivery_date = formattedDeliveryDate;
-      }
-
-      // Ensure expected_delivery_date is explicitly excluded for pending or canceled orders
+      // Exclude expected_delivery_date for Pending or Canceled orders
       if (order.order_status === 'Pending' || order.order_status === 'Canceled') {
         delete orderResponse.expected_delivery_date;
       }
@@ -112,7 +107,7 @@ exports.getAllOrdersForAdmin = (req, res) => {
         quantity: item.quantity,
         price: item.price,
         total_price: item.total_price,
-        product_image: item.product_image ? `/${item.product_image}` : null,  // Handle image path
+        product_image: item.product_image ? `/${item.product_image}` : null, // Handle image path
       }));
 
       return orderResponse;
@@ -125,15 +120,11 @@ exports.getAllOrdersForAdmin = (req, res) => {
   });
 };
 
-
-
-
-
 exports.updateOrderStatusByAdmin = (req, res) => {
-  const { order_id, status, expected_delivery_date } = req.body;
+  const { order_id, status, expected_delivery_date, modified_by } = req.body;
 
   // Allowed statuses
-  const allowedStatuses = ['Confirmed', 'Shipped', 'Dispatched', 'Out for Delivery', 'Delivered', 'Canceled'];
+  const allowedStatuses = ['Confirmed', 'Shipped', 'Dispatched', 'Out for Delivery', 'Delivered'];
 
   if (!allowedStatuses.includes(status)) {
     return res.status(400).json({ error: 'Invalid order status' });
@@ -143,12 +134,30 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     return res.status(400).json({ error: 'Order ID is required' });
   }
 
-  // Convert date to SQL format if provided
-  const formattedDate = expected_delivery_date
-    ? new Date(expected_delivery_date.split('-').reverse().join('-')).toISOString().split('T')[0] // DD-MM-YYYY to YYYY-MM-DD
-    : null;
+  if (!modified_by) {
+    return res.status(400).json({ error: 'Modified by is required' });
+  }
 
-  // Step 1: Check if the order's current status is 'Confirmed'
+  // Convert expected_delivery_date if provided, handle format DD/MM/YYYY
+  let formattedDate = null;
+  if (expected_delivery_date) {
+    // Regex to validate the DD/MM/YYYY format
+    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (dateRegex.test(expected_delivery_date)) {
+      const [day, month, year] = expected_delivery_date.split('/'); // Extract day, month, year
+      formattedDate = `${year}-${month}-${day}`; // Convert to YYYY-MM-DD format
+
+      // Validate the formatted date
+      const dateObj = new Date(formattedDate);
+      if (isNaN(dateObj)) {
+        return res.status(400).json({ error: 'Invalid date format. Could not parse date.' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Invalid date format. Expected format: DD/MM/YYYY' });
+    }
+  }
+
+  // Step 1: Check if the order's current status is valid for the update
   const checkStatusQuery = `
     SELECT status 
     FROM orders 
@@ -167,20 +176,22 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 
     const currentStatus = result[0].status;
 
-    // If the current status is not 'Confirmed', deny the update
-    if (currentStatus !== 'Confirmed') {
-      return res.status(400).json({ error: `Order must be 'Confirmed' to update the expected delivery date.` });
+    // Allow status updates unless the order is already delivered
+    if (currentStatus === 'Delivered') {
+      return res.status(400).json({ error: 'Order cannot be updated after being delivered.' });
     }
 
-    // Step 2: Proceed to update the status and expected delivery date
+    // Step 2: Proceed to update the status, expected delivery date, and modified_by field
     const updateQuery = `
       UPDATE orders 
-      SET status = ?, 
-          expected_delivery_date = COALESCE(?, expected_delivery_date) 
+      SET 
+        status = ?, 
+        expected_delivery_date = COALESCE(?, expected_delivery_date), 
+        modified_by = ? 
       WHERE order_id = ?;
     `;
 
-    db.query(updateQuery, [status, formattedDate, order_id], (err, result) => {
+    db.query(updateQuery, [status, formattedDate, modified_by, order_id], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ error: 'Failed to update order status', details: err });
@@ -197,8 +208,10 @@ exports.updateOrderStatusByAdmin = (req, res) => {
   });
 };
 
+
+
 exports.getAllOrdersSummary = (req, res) => {
-  // Query to fetch the total orders, pending orders, and customer count for role_id = 1 (admin)
+  // Query to fetch the total orders, pending orders, customer count, and total products with status = 1
   const query = `
     SELECT 
       COUNT(DISTINCT CASE 
@@ -211,9 +224,11 @@ exports.getAllOrdersSummary = (req, res) => {
       COUNT(DISTINCT CASE 
         WHEN u.role_id = 1 THEN u.user_id 
         ELSE NULL 
-      END) AS total_customers  -- Count customers with role_id = 1 (admin)
+      END) AS total_customers,  -- Count customers with role_id = 1 (admin)
+
+      (SELECT COUNT(*) FROM product WHERE status = 1) AS total_products  -- Count total products with status = 1
     FROM users u
-    LEFT JOIN orders o ON u.user_id = o.user_id  -- Join the orders table, but count all users
+    LEFT JOIN orders o ON u.user_id = o.user_id
   `;
 
   db.query(query, (err, result) => {
@@ -223,13 +238,13 @@ exports.getAllOrdersSummary = (req, res) => {
     }
 
     if (result.length === 0) {
-      return res.status(404).json({ message: 'No users available' });
+      return res.status(404).json({ message: 'No data available' });
     }
 
-    // Respond with the order summary for all users
+    // Respond with the order summary
     res.status(200).json({
-      message: 'Order summary for all users fetched successfully',
-      order_summary: result[0], // Contains total_orders, pending_orders, and total_admins
+      message: 'Order summary fetched successfully',
+      order_summary: result[0], // Contains total_orders, pending_orders, total_customers, and total_products
     });
   });
 };
