@@ -266,12 +266,20 @@ const Header = ({ handleLogout, userdata }) => {
                                   </li>
                                 </>
                               ) : (
+                                <>
                                 <li
                                   className="product-box-contain"
                                   onClick={handleLogout}
                                 >
                                   Logout
                                 </li>
+                                <li className="product-box-contain">
+                                    <Link to="/profile">
+                                      My Account
+                                    </Link>
+                                  </li>
+                                </>
+                                
                               )}
                             </ul>
                           </div>
