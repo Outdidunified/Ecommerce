@@ -7,7 +7,7 @@ const RoleController=require('../../controllers/admin/role/rolecontroller');
 router.post('/add', RoleController.addRole);
 router.get('/',RoleController.getAllRoles)
 router.post('/update',RoleController.updateRoleName);
-router.post('/delete',RoleController.deactivateProduct);
+router.post('/delete',RoleController.deactivaterole);
 module.exports = router;
 
 

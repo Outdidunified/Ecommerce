@@ -3,16 +3,15 @@ const cors = require('cors');
 require('dotenv').config({ path: './config/.env' });
 const path = require('path');  // Add this line to import the path module
 
-
-const UserRoutes=require('../BACKEND/routes/user/userRoutes');
-const ProductRoutes=require('../BACKEND/routes/user/productRoutes');
-const CartRoutes=require('../BACKEND/routes/user/cartRoutes');
-const OrderRoutes=require('../BACKEND/routes/user/orderRoutes');
-const adminRoutes=require('../BACKEND/routes/admin/adminRoutes');
-const productRoutes=require('../BACKEND/routes/admin/productRoutes');
-const categoryRoutes=require('../BACKEND/routes/admin/categoryRoutes');
-const roleRoutes=require('../BACKEND/routes/admin/roleRoutes');
-const orderRoutes=require('../BACKEND/routes/admin/orderRoutes');
+const UserRoutes=require('./routes/user/userRoutes');
+const ProductRoutes=require('./routes/user/productRoutes');
+const CartRoutes=require('./routes/user/cartRoutes');
+const OrderRoutes=require('./routes/user/orderRoutes');
+const adminRoutes=require('./routes/admin/adminRoutes');
+const productRoutes=require('./routes/admin/productRoutes');
+const categoryRoutes=require('./routes/admin/categoryRoutes');
+const roleRoutes=require('./routes/admin/roleRoutes');
+const orderRoutes=require('./routes/admin/orderRoutes');
 
 const app = express();
 

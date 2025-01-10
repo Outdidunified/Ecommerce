@@ -1,4 +1,5 @@
 const db=require('../../../config/db');
+
 exports.getAllOrdersForAdmin = (req, res) => {
   const query = `
     SELECT 
@@ -49,7 +50,6 @@ exports.getAllOrdersForAdmin = (req, res) => {
     const parsedResult = result.map(order => {
       let formattedCreatedDate = null;
 
-      // Format created_date as "DD/MM/YYYY"
       if (order.created_date) {
         const createdDate = new Date(order.created_date);
         formattedCreatedDate = `${createdDate.getDate().toString().padStart(2, '0')}/${(createdDate.getMonth() + 1)
@@ -59,17 +59,14 @@ exports.getAllOrdersForAdmin = (req, res) => {
 
       let formattedDeliveryDate = null;
 
-      // Format expected_delivery_date as "DD/MM/YYYY"
       if (
         ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status)
       ) {
         if (order.expected_delivery_date) {
-          const date = new Date(order.expected_delivery_date);
-          formattedDeliveryDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+          const deliveryDate = new Date(order.expected_delivery_date);
+          formattedDeliveryDate = `${deliveryDate.getDate().toString().padStart(2, '0')}/${(deliveryDate.getMonth() + 1)
             .toString()
-            .padStart(2, '0')}/${date.getFullYear()}`;
-        } else {
-          formattedDeliveryDate = null;
+            .padStart(2, '0')}/${deliveryDate.getFullYear()}`;
         }
       }
 
@@ -77,10 +74,10 @@ exports.getAllOrdersForAdmin = (req, res) => {
         order_id: order.order_id,
         total_price: order.total_price,
         order_status: order.order_status,
-        created_date: formattedCreatedDate, // Include formatted created_date
-        expected_delivery_date: formattedDeliveryDate, // Include formatted expected_delivery_date
+        created_date: formattedCreatedDate,
+        expected_delivery_date: formattedDeliveryDate,
         payment_status: order.payment_status,
-        razorpay_payment_id: order.razorpay_payment_id, // Include razorpay_payment_id
+        razorpay_payment_id: order.razorpay_payment_id,
         user_id: order.user_id,
         username: order.username,
         delivery_name: order.delivery_name,
@@ -91,39 +88,37 @@ exports.getAllOrdersForAdmin = (req, res) => {
         house_no: order.house_no,
         road_name: order.road_name,
         tracking_code: ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status) ? order.tracking_code : null,
-
-        items: order.items ? JSON.parse(`[${order.items}]`) : [], // Parse items JSON
+        items: order.items ? JSON.parse(`[${order.items}]`) : [],
       };
 
-      // Exclude expected_delivery_date for Pending or Canceled orders
       if (order.order_status === 'Pending' || order.order_status === 'Canceled') {
         delete orderResponse.expected_delivery_date;
       }
 
-      // Parse product details and handle the image path
       orderResponse.items = orderResponse.items.map(item => ({
         product_id: item.product_id,
         product_name: item.product_name,
         quantity: item.quantity,
         price: item.price,
         total_price: item.total_price,
-        product_image: item.product_image ? `/${item.product_image}` : null, // Handle image path
+        product_image: item.product_image ? `/${item.product_image}` : null,
       }));
 
       return orderResponse;
     });
 
-    res.json({
+    res.status(200).json({
       message: 'All orders fetched successfully',
       orders: parsedResult,
     });
   });
 };
 
+
+
 exports.updateOrderStatusByAdmin = (req, res) => {
   const { order_id, status, expected_delivery_date, modified_by } = req.body;
 
-  // Allowed statuses
   const allowedStatuses = ['Confirmed', 'Shipped', 'Dispatched', 'Out for Delivery', 'Delivered'];
 
   if (!allowedStatuses.includes(status)) {
@@ -138,16 +133,12 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     return res.status(400).json({ error: 'Modified by is required' });
   }
 
-  // Convert expected_delivery_date if provided, handle format DD/MM/YYYY
   let formattedDate = null;
   if (expected_delivery_date) {
-    // Regex to validate the DD/MM/YYYY format
     const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (dateRegex.test(expected_delivery_date)) {
-      const [day, month, year] = expected_delivery_date.split('/'); // Extract day, month, year
-      formattedDate = `${year}-${month}-${day}`; // Convert to YYYY-MM-DD format
-
-      // Validate the formatted date
+      const [day, month, year] = expected_delivery_date.split('/');
+      formattedDate = `${year}-${month}-${day}`;
       const dateObj = new Date(formattedDate);
       if (isNaN(dateObj)) {
         return res.status(400).json({ error: 'Invalid date format. Could not parse date.' });
@@ -157,16 +148,10 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     }
   }
 
-  // Step 1: Check if the order's current status is valid for the update
-  const checkStatusQuery = `
-    SELECT status 
-    FROM orders 
-    WHERE order_id = ?;
-  `;
+  const checkStatusQuery = `SELECT status FROM orders WHERE order_id = ?;`;
 
   db.query(checkStatusQuery, [order_id], (err, result) => {
     if (err) {
-      console.error(err);
       return res.status(500).json({ error: 'Failed to fetch order status', details: err });
     }
 
@@ -176,12 +161,10 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 
     const currentStatus = result[0].status;
 
-    // Allow status updates unless the order is already delivered
     if (currentStatus === 'Delivered') {
       return res.status(400).json({ error: 'Order cannot be updated after being delivered.' });
     }
 
-    // Step 2: Proceed to update the status, expected delivery date, and modified_by field
     const updateQuery = `
       UPDATE orders 
       SET 
@@ -193,7 +176,6 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 
     db.query(updateQuery, [status, formattedDate, modified_by, order_id], (err, result) => {
       if (err) {
-        console.error(err);
         return res.status(500).json({ error: 'Failed to update order status', details: err });
       }
 
@@ -201,12 +183,15 @@ exports.updateOrderStatusByAdmin = (req, res) => {
         return res.status(404).json({ error: 'Order not found' });
       }
 
-      res.json({
-        message: `Order status updated to ${status}${formattedDate ? ` with expected delivery date ${formattedDate}` : ''}`,
+      res.status(200).json({
+        message: `Order status updated to ${status}${formattedDate ? ` with expected delivery date ${expected_delivery_date}` : ''}`,
       });
     });
   });
 };
+
+
+
 
 
 

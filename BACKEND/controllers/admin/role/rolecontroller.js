@@ -130,7 +130,7 @@ exports.updateRoleName = (req, res) => {
   
 
 // Function to deactivate a role
-exports.deactivateProduct = (req, res) => {
+exports.deactivaterole = (req, res) => {
     const { role_id, status, modified_by } = req.body;
   
     // Validation for required fields

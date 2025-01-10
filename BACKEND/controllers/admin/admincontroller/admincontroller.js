@@ -1,7 +1,7 @@
 //const db=require('D:\\BackendEcommerce\\BACKEND\\BACKEND\\config\\db.js')
 const db=require('../../../config/db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt'); 
+//const bcrypt = require('bcrypt'); 
 exports.signup = (req, res) => {
   const { username, email_id, password, user_type } = req.body;
   console.log(req.body);
