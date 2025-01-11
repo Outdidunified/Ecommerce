@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
+
 import Login from './Pages/Auth/login';
 import Register from './Pages/Auth/Register';
 import Dashboard from './Pages/Dashboard';
@@ -18,53 +19,49 @@ import Ordertracking from './Pages/Orders/Ordertracking';
 import SubCategory from './Pages/Category/SubCategory';
 
 function App() {
-    // State for token and admin data
-    const [token, setToken] = useState(null);
-    const [adminData, setAdminData] = useState(null);
-    const [loggedIn, setLoggedIn] = useState(false);
+    const [token, setToken] = useState(sessionStorage.getItem('authToken') || null);
+    const [adminData, setAdminData] = useState(() => {
+        const storedAdminData = sessionStorage.getItem('adminData');
+        return storedAdminData ? JSON.parse(storedAdminData) : null;
+    });
+    const [loggedIn, setLoggedIn] = useState(!!sessionStorage.getItem('authToken'));
 
-    // Initialize state from session storage
     useEffect(() => {
         const storedToken = sessionStorage.getItem('authToken');
-        console.log('token:', storedToken); // This logs the token to the console
-    
         const storedAdminData = sessionStorage.getItem('adminData');
-    
+
         if (storedToken) {
             setToken(storedToken);
             setLoggedIn(true);
+
             if (storedAdminData) {
                 try {
                     setAdminData(JSON.parse(storedAdminData));
                 } catch (error) {
-                    console.error("Error parsing admin data:", error);
+                    console.error('Error parsing admin data:', error);
                 }
             }
         }
     }, []);
-    
 
-    // Handle login
     const handleLogin = (token, adminData) => {
         setToken(token);
         setLoggedIn(true);
         setAdminData(adminData);
 
         sessionStorage.setItem('authToken', token);
-     
         sessionStorage.setItem('adminData', JSON.stringify(adminData));
     };
 
-    // Handle logout
     const handleLogout = () => {
         setToken(null);
         setLoggedIn(false);
         setAdminData(null);
-  
+
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('adminData');
     };
-
+    
     return (
         <BrowserRouter>
             <Routes>

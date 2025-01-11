@@ -1,226 +1,168 @@
 import React from 'react';
 import 'remixicon/fonts/remixicon.css';
-
-
-import {Link } from 'react-router-dom';
-
+import { useLocation } from "react-router-dom";
+import { Link } from 'react-router-dom';
 import Sidebar from '../../Components/Sidebar/Sidebar';
 import Header from '../../Components/Header/Header';
 import Footer from '../../Components/Footer/footer';
 
-const Orderdetail = ({handleLogout,adminData}) => {
+const Orderdetail = ({ handleLogout, adminData }) => {
+    const location = useLocation(); // Access location object
+    const order = location.state?.order; // Get the order data passed in state
+    console.log(order);
+
+    // Check if order exists
+    if (!order) {
+        return <div>No order found</div>;
+    }
+
+    // Render items list
+    const renderItems = order.items.map((item, index) => (
+        <tr className="table-order" key={index}>
+            <td>
+                <a href="javascript:void(0)">
+                    <img
+                        src={item.product_image}
+                        className="img-fluid blur-up lazyload"
+                        alt={item.product_name}
+                    />
+                </a>
+            </td>
+            <td>
+                <p>Product Name</p>
+                <h5>{item.product_name}</h5>
+            </td>
+            <td>
+                <p>Quantity</p>
+                <h5>{item.quantity}</h5>
+            </td>
+            <td>
+                <p>Price</p>
+                <h5>Rs.{item.price}</h5>
+            </td>
+        </tr>
+    ));
+
     return (
         <div>
-         {/*page-wrapper Start*/}
-    <div class="page-wrapper compact-wrapper" id="pageWrapper">
-      {/*Page Header Start*/}
-      <Header   handleLogout={handleLogout} adminData={adminData}/>
-      {/*Page Header Ends*/}
+            {/*page-wrapper Start*/}
+            <div className="page-wrapper compact-wrapper" id="pageWrapper">
+                {/*Page Header Start*/}
+                <Header handleLogout={handleLogout} adminData={adminData} />
+                {/*Page Header Ends*/}
 
-      {/*Page Body Start*/}
-        <div class="page-body-wrapper">
-          {/*Page Sidebar Start*/}
-          <Sidebar/>
-          {/*Page Sidebar Ends*/}
+                {/*Page Body Start*/}
+                <div className="page-body-wrapper">
+                    {/*Page Sidebar Start*/}
+                    <Sidebar />
+                    {/*Page Sidebar Ends*/}
 
-          {/*Container-fluid starts*/}
-          <div class="page-body">
-            
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="title-header title-header-block package-card">
-                                        <div>
-                                            <h5>Order #36648</h5>
-                                        </div>
-                                        <div class="card-order-section">
-                                            <ul>
-                                                <li>October 21, 2021 at 9:08 pm</li>
-                                                <li>6 items</li>
-                                                <li>Total $5,882.00</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="bg-inner cart-section order-details-table">
-                                        <div class="row g-4">
-                                            <div class="col-xl-8">
-                                                <div class="table-responsive table-details">
-                                                    <table class="table cart-table table-borderless">
-                                                        <thead>
-                                                            <tr>
-                                                                <th colspan="2">Items</th>
-                                                                <th class="text-end" colspan="2">
-                                                                    <a href="javascript:void(0)"
-                                                                        class="theme-color">Edit
-                                                                        Items</a>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-
-                                                        <tbody>
-                                                            <tr class="table-order">
-                                                                <td>
-                                                                    <a href="javascript:void(0)">
-                                                                        <img src="assets/images/profile/1.jpg"
-                                                                            class="img-fluid blur-up lazyload"  alt=""/>
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Product Name</p>
-                                                                    <h5>Outwear & Coats</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Quantity</p>
-                                                                    <h5>1</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Price</p>
-                                                                    <h5>$63.54</h5>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr class="table-order">
-                                                                <td>
-                                                                    <a href="javascript:void(0)">
-                                                                        <img src="assets/images/profile/2.jpg"
-                                                                            class="img-fluid blur-up lazyload"  alt=""/>
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Product Name</p>
-                                                                    <h5>Slim Fit Plastic Coat</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Quantity</p>
-                                                                    <h5>5</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Price</p>
-                                                                    <h5>$63.54</h5>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr class="table-order">
-                                                                <td>
-                                                                    <a href="javascript:void(0)">
-                                                                        <img src="assets/images/profile/3.jpg"
-                                                                            class="img-fluid blur-up lazyload"  alt=""/>
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Product Name</p>
-                                                                    <h5>Men's Sweatshirt</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Quantity</p>
-                                                                    <h5>1</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <p>Price</p>
-                                                                    <h5>$63.54</h5>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-
-                                                        <tfoot>
-                                                            <tr class="table-order">
-                                                                <td colspan="3">
-                                                                    <h5>Subtotal :</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <h4>$55.00</h4>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr class="table-order">
-                                                                <td colspan="3">
-                                                                    <h5>Shipping :</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <h4>$12.00</h4>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr class="table-order">
-                                                                <td colspan="3">
-                                                                    <h5>Tax(GST) :</h5>
-                                                                </td>
-                                                                <td>
-                                                                    <h4>$10.00</h4>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr class="table-order">
-                                                                <td colspan="3">
-                                                                    <h4 class="theme-color fw-bold">Total Price :</h4>
-                                                                </td>
-                                                                <td>
-                                                                    <h4 class="theme-color fw-bold">$6935.00</h4>
-                                                                </td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
+                    {/*Container-fluid starts*/}
+                    <div className="page-body">
+                        <div className="container-fluid">
+                            <div className="row">
+                                <div className="col-sm-12">
+                                    <div className="card">
+                                        <div className="card-body">
+                                            <div className="title-header title-header-block package-card">
+                                                <div>
+                                                    <h5>Order #{order.order_id}</h5>
+                                                </div>
+                                                <div className="card-order-section">
+                                                    <ul>
+                                                        <li>{order.created_date} at 9:08 pm</li>
+                                                        <li>{order.items.length} items</li>
+                                                        <li>Total Rs.{order.total_price}</li>
+                                                    </ul>
                                                 </div>
                                             </div>
+                                            <div className="bg-inner cart-section order-details-table">
+                                                <div className="row g-4">
+                                                    <div className="col-xl-8">
+                                                        <div className="table-responsive table-details">
+                                                            <table className="table cart-table table-borderless">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th colSpan="2">Items</th>
+                                                                        <th className="text-end" colSpan="2"></th>
+                                                                    </tr>
+                                                                </thead>
 
-                                            <div class="col-xl-4">
-                                                <div class="order-success">
-                                                    <div class="row g-4">
-                                                        <h4>summery</h4>
-                                                        <ul class="order-details">
-                                                            <li>Order ID: 5563853658932</li>
-                                                            <li>Order Date: October 22, 2018</li>
-                                                            <li>Order Total: $907.28</li>
-                                                        </ul>
+                                                                <tbody>
+                                                                    {renderItems}
+                                                                </tbody>
 
-                                                        <h4>shipping address</h4>
-                                                        <ul class="order-details">
-                                                            <li>Gerg Harvell</li>
-                                                            <li>568, Suite Ave.</li>
-                                                            <li>Austrlia, 235153 Contact No. 48465465465</li>
-                                                        </ul>
+                                                                <tfoot>
+                                                                
+                                                                    
 
-                                                        <div class="payment-mode">
-                                                            <h4>payment method</h4>
-                                                            <p>Pay on Delivery (Cash/Card). Cash on delivery (COD)
-                                                                available. Card/Net banking acceptance subject to device
-                                                                availability.</p>
+                                                                    <tr className="table-order">
+                                                                        <td colSpan="3">
+                                                                            <h4 className="theme-color fw-bold">Total Price :</h4>
+                                                                        </td>
+                                                                        <td>
+                                                                            <h4 className="theme-color fw-bold">Rs.{order.total_price}</h4>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
                                                         </div>
+                                                    </div>
 
-                                                        <div class="delivery-sec">
-                                                            <h3>expected date of delivery: <span>october 22, 2018</span>
-                                                            </h3>
-                                                            <a href="order-tracking.html">track order</a>
+                                                    <div className="col-xl-4">
+                                                        <div className="order-success">
+                                                            <div className="row g-4">
+                                                                <h4>Summary</h4>
+                                                                <ul className="order-details">
+                                                                    <li>Order ID: {order.order_id}</li>
+                                                                    <li>Order Date: {order.created_date}</li>
+                                                                    <li>Order Total: Rs.{order.total_price}</li>
+                                                                </ul>
+
+                                                                <h4>Shipping Address</h4>
+                                                                <ul className="order-details">
+                                                                    <li>{order.delivery_name}</li>
+                                                                    <li>{order.house_no}, {order.road_name}</li>
+                                                                    <li>{order.city}, {order.state}, {order.pincode}</li>
+                                                                    <li>Contact No. {order.contact_number}</li>
+                                                                </ul>
+
+                                                                <div className="payment-mode">
+    <h4>Payment Method</h4>
+    <p>Online Payment Only. Card/Net banking acceptance is available.</p>
+</div>
+
+                                                                <div className="delivery-sec">
+                                                                    <h3>Expected Date of Delivery: <span>{order.expected_delivery_date || "TBA"}</span></h3>
+                                                                    <Link
+ 
+  to="/ordertracking" state={{  order }}
+>
+  Tracking
+</Link>
+
+
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                             
                                 </div>
                             </div>
                         </div>
+
+                        <div className="container-fluid">
+                            <Footer />
+                        </div>
                     </div>
                 </div>
-
-                <div class="container-fluid">
-                
-                    <Footer/>
-                </div>
             </div>
+            {/*page-wrapper End*/}
         </div>
-    </div>
-  {/*page-wrapper End*/}
-
-             
-        
-          
-      </div>
     );
 };
 
 export default Orderdetail;
-

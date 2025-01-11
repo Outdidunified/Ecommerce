@@ -28,7 +28,7 @@ const Register = () => {
     };
     e.preventDefault();
     try {
-      const response = await axios.post('http://192.168.1.41:6382/admin/signup', registerData);
+      const response = await axios.post('/admin/signup', registerData);
       if (response.status === 200) {
         setSuccess('Registration successful! Redirecting to login page...');
         

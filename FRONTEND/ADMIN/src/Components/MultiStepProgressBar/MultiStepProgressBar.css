@@ -1,0 +1,87 @@
+.indexedStep {
+    color: rgb(190, 190, 190); /* Grey text color for numbers */
+    width: 40px; /* Increased width */
+    height: 40px; /* Increased height */
+    font-size: 14px; /* Adjusted font size */
+    background-color: rgb(255, 255, 255); /* White background for the circle */
+    border-radius: 50%;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(190, 190, 190); /* Grey border color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 15px; /* Increased space between steps */
+}
+
+.indexedStep .number {
+    color: rgb(190, 190, 190); /* Grey color for number inside the circle */
+    background-color: rgb(255, 255, 255); /* White background for the number inside */
+    border-radius: 50%;
+    padding: 5px; /* Space around the number */
+}
+
+.indexedStep.accomplished {
+    background-color: rgb(190, 190, 190); /* Grey background when accomplished */
+    color: white;
+    border-style: none;
+}
+
+.RSPBprogressBar {
+    height: 4px; /* Increased height */
+    width: 80%; /* Increased width for a longer progress bar */
+    line-height: 1;
+    border-radius: 10px;
+    position: relative;
+    background-color: rgb(207, 207, 207);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 0;
+    margin: 20px auto;
+}
+
+.RSPBprogressBar .RSPBstep {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 0;
+    position: absolute;
+    transform: translateX(-50%);
+    transition-property: all;
+    transition-timing-function: ease;
+}
+
+.RSPBprogressBar .RSPBprogressBarText {
+    color: white;
+    font-size: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.RSPBprogressBar .RSPBprogression {
+    position: absolute;
+    transition: width 0.3s ease;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 10px;
+    background: #30c00c;
+    z-index: -1;
+}
+
+@media screen and (max-width: 480px) {
+    .indexedStep {
+        width: 25px; /* Adjusted width for smaller screen */
+        height: 25px; /* Adjusted height for smaller screen */
+        font-size: 10px; /* Adjusted font size for smaller screen */
+        margin: 0 10px; /* Adjusted space between steps */
+    }
+
+    .RSPBprogressBar {
+        width: 90%; /* Increased width on smaller screens */
+    }
+}

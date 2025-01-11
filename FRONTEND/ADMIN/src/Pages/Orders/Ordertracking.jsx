@@ -1,224 +1,191 @@
 import React from 'react';
 import 'remixicon/fonts/remixicon.css';
-
-
-
-
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from '../../Components/Sidebar/Sidebar';
 import Header from '../../Components/Header/Header';
 import Footer from '../../Components/Footer/footer';
+import MultiStepProgressBar from '../../Components/MultiStepProgressBar/MultiStepProgressBar'; // Import your custom progress bar
 
-const Ordertracking = ({handleLogout,adminData}) => {
+
+const Ordertracking = ({ handleLogout, adminData }) => {
+  const location = useLocation();
+  const { order } = location.state || {}; // Safely access order details
+  const navigate = useNavigate();
+
+  const handleTrackAnotherOrder = () => {
+    navigate('/orderlist'); // Navigate to /orderlist
+  };
+
+  // Ensure order_status exists and check its value
+  const orderStatus = order.order_status || '';
+  console.log('Order Status:', orderStatus); // Debugging order status
+
+  // Status steps in the order
+  const statusOrder = ['Confirmed', 'Dispatched', 'Shipped', 'Out for Delivery', 'Delivered'];
+
+  // Determine the index of the current order status
+  const currentStatusIndex = statusOrder.indexOf(orderStatus);
+
+  console.log('Current status index:', currentStatusIndex); // Debugging current status index
+
+  // Check if the current status is "Delivered", and return a message or alternative view if necessary
+  if (orderStatus === 'Delivered') {
     return (
-        <div>
-         {/*page-wrapper Start*/}
-    <div class="page-wrapper compact-wrapper" id="pageWrapper">
-      {/*Page Header Start*/}
-      <Header  handleLogout={handleLogout} adminData={adminData}/>
-      {/*Page Header Ends*/}
-
-      {/*Page Body Start*/}
-        <div class="page-body-wrapper">
-          {/*Page Sidebar Start*/}
-          <Sidebar/>
-          {/*Page Sidebar Ends*/}
-
-          {/*Container-fluid starts*/}
-          <div class="page-body">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="title-header option-title">
-                                                <h5>Order Tracking</h5>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-12 overflow-hidden">
-                                                    <div class="order-left-image">
-                                                        <div class="tracking-product-image">
-                                                            <img src="assets/images/profile/1.jpg"
-                                                                class="img-fluid w-100 blur-up lazyload"  alt=""/>
-                                                        </div>
-
-                                                        <div class="order-image-contain">
-                                                            <h4>Van Heusen Men's Solid Regular Fit Polo</h4>
-                                                            <div class="tracker-number">
-                                                                <p>Order Number : <span>W765EWR8568871</span></p>
-                                                                <p>Brand : <span>Van Heusen</span></p>
-                                                                <p>Order Placed : <span>June 25, 2021</span></p>
-                                                            </div>
-                                                            <h5>Your items is on the way. Tracking information will be
-                                                                available within 24 hours.</h5>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <ol class="progtrckr">
-                                                    <li class="progtrckr-done">
-                                                        <h5>Order Processing</h5>
-                                                        <h6>05:43 AM</h6>
-                                                    </li>
-                                                    <li class="progtrckr-done">
-                                                        <h5>Pre-Production</h5>
-                                                        <h6>01:21 PM</h6>
-                                                    </li>
-                                                    <li class="progtrckr-done">
-                                                        <h5>In Production</h5>
-                                                        <h6>Processing</h6>
-                                                    </li>
-                                                    <li class="progtrckr-todo">
-                                                        <h5>Shipped</h5>
-                                                        <h6>Pending</h6>
-                                                    </li>
-                                                    <li class="progtrckr-todo">
-                                                        <h5>Delivered</h5>
-                                                        <h6>Pending</h6>
-                                                    </li>
-                                                </ol>
-
-                                                <div class="col-12 overflow-visible">
-                                                    <div class="tracker-table">
-                                                        <div class="table-responsive">
-                                                            <table class="table">
-                                                                <thead>
-                                                                    <tr class="table-head">
-                                                                        <th scope="col">Date</th>
-                                                                        <th scope="col">Time</th>
-                                                                        <th scope="col">Discription</th>
-                                                                        <th scope="col">Location</th>
-                                                                    </tr>
-                                                                </thead>
-
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>
-                                                                            <h6>21/05/2021</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>12:21 AM</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <p class="fw-bold">Shipped Info</p>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>3 SW. Summit St. Lithonia, GA 30038</h6>
-                                                                        </td>
-                                                                    </tr>
-
-                                                                    <tr>
-                                                                        <td>
-                                                                            <h6>15/04/2021</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>01:00 PM</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <p class="fw-bold">Shipped</p>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>70 Rockwell Lane Falls Church, VA 22041
-                                                                            </h6>
-                                                                        </td>
-                                                                    </tr>
-
-                                                                    <tr>
-                                                                        <td>
-                                                                            <h6>04/05/2021</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>03:58 AM</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <p class="fw-bold">Shipped Info Received</p>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>13 Durham St. The Villages, FL 32162
-                                                                            </h6>
-                                                                        </td>
-                                                                    </tr>
-
-                                                                    <tr>
-                                                                        <td>
-                                                                            <h6>30/04/2021</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>06:26 PM</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <p class="fw-bold">Origin Scan</p>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>38 Saxon Lane Mobile, AL 36605</h6>
-                                                                        </td>
-                                                                    </tr>
-
-                                                                    <tr>
-                                                                        <td>
-                                                                            <h6>02/02/2021</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>03:45 PM</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <p class="fw-bold">Shipped Info Received</p>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>3 Willow Street Chillicothe, OH 45601
-                                                                            </h6>
-                                                                        </td>
-                                                                    </tr>
-
-                                                                    <tr>
-                                                                        <td>
-                                                                            <h6>14/01/2021</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>12:21 AM</h6>
-                                                                        </td>
-                                                                        <td>
-                                                                            <p class="fw-bold">Shipped</p>
-                                                                        </td>
-                                                                        <td>
-                                                                            <h6>35 Brickyard Rd. Marshalltown, IA 50158
-                                                                            </h6>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer text-end border-0 pb-0 d-flex justify-content-end">
-                                            <button class="btn btn-primary me-3">Submit</button>
-                                            <button class="btn btn-outline">Cancel</button>
-                                        </div>
-                                    </div>
-                                </div>
+      <div>
+        <div className="page-wrapper compact-wrapper" id="pageWrapper">
+          <Header handleLogout={handleLogout} adminData={adminData} />
+          <div className="page-body-wrapper">
+            <Sidebar />
+            <div className="page-body">
+              <div className="container-fluid">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="row">
+                      <div className="col-sm-12">
+                        <div className="card">
+                          <div className="card-body">
+                            <div className="title-header option-title">
+                              <h5>Order Tracking</h5>
                             </div>
+
+                            {/* Delivered Status - New Design */}
+                            <div className="order-status-card">
+                              {/* Left-Aligned Order Information */}
+                              <div className="order-content">
+                                {/* Delivery Banner Section */}
+                                <div className="delivery-banner">
+                                  <div className="delivery-icon">
+                                    <i className="ri-checkbox-circle-fill" style={{ fontSize: '3rem', color: 'green' }}></i>
+                                  </div>
+                                  <div className="delivery-message">
+                                    <h3>Order Delivered</h3>
+                                  </div>
+                                </div>
+
+                                {/* Order Details */}
+                                <div className="order-details">
+                                  <h4>{order.items[0]?.product_name || 'No Product Name'}</h4>
+                                  <ul>
+                                    <li><strong>Order Number:</strong> {order.order_id}</li>
+                                    <li><strong>Tracking Code:</strong> {order.tracking_code}</li>
+                                    <li><strong>Order Placed:</strong> {order.created_date || 'Unknown Date'}</li>
+                                    <li><strong>Expected Delivery:</strong> {order.expected_delivery_date || 'Unknown Date'}</li>
+                                    <li><strong>Payment Status:</strong> {order.payment_status || 'Pending'}</li>
+                                  </ul>
+                                </div>
+                                <div className="order-status-info">
+                                  <div className="status-button">
+                                    <button className="btn btn-success" onClick={handleTrackAnotherOrder}>
+                                      Track Another Order
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right-Aligned Product Image */}
+                              <div className="order-product-image">
+                                <img
+                                  src={
+                                    order.items && order.items.length > 0
+                                      ? `http://localhost:6381${order.items[0].product_image}`
+                                      : 'assets/images/placeholder.jpg'
+                                  }
+                                  className="img-fluid w-100 lazyload"
+                                  alt="Product Image"
+                                />
+                              </div>
+
+                            </div>
+
+                          </div>
                         </div>
+                      </div>
                     </div>
+                  </div>
                 </div>
-            
-
-              
-                <Footer/>
-           
+              </div>
             </div>
+            <Footer />
+          </div>
         </div>
-    </div>
-  {/*page-wrapper End*/}
-
-             
-        
-          
       </div>
     );
+  }
+
+  // Render the order status progress bar if status is not "Delivered"
+  return (
+    <div>
+  <div className="page-wrapper compact-wrapper" id="pageWrapper">
+    <Header handleLogout={handleLogout} adminData={adminData} />
+    <div className="page-body-wrapper">
+      <Sidebar />
+      <div className="page-body">
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-12">
+              <div className="row">
+                <div className="col-sm-12">
+                  <div className="card">
+                    <div className="card-body">
+                      <div className="title-header option-title">
+                        <h5>Order Tracking</h5>
+                      </div>
+                      <div className="order-left-image">
+                        <div className="tracking-product-image">
+                          <img
+                            src={
+                              order.items && order.items.length > 0
+                                ? `http://localhost:6381${order.items[0].product_image}`
+                                : 'assets/images/placeholder.jpg'
+                            }
+                            className="img-fluid w-100 blur-up lazyload"
+                            alt="Product Image"
+                          />
+                        </div>
+                        <div className="order-image-contain">
+                          <h4>{order.items[0]?.product_name || 'No Product Name'}</h4>
+                          <div className="tracker-number">
+                            <p>Order Number: <span>{order.order_id}</span></p>
+                            <p>Tracking code: <span>{order.tracking_code}</span></p>
+                            <p>Order Placed: <span>{order.created_date || 'Unknown Date'}</span></p>
+                            <p>Expected delivery date: <span>{order.expected_delivery_date || 'Unknown Date'}</span></p>
+                            <p>Payment Status: <span>{order.payment_status || 'Unknown Date'}</span></p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="order-status-progress mt-5">
+  <MultiStepProgressBar 
+    orderStatus={statusOrder[currentStatusIndex]} // Use the current status for the progress bar
+    onPageNumberClick={(step) => {
+      // Optional: Handle click event on step number (if needed)
+    }}
+  />
+</div>
+
+{/* Status Titles */}
+<div className="order-status-titles">
+  {statusOrder.map((status, index) => (
+    <div key={index} className={`status-title ${index <= currentStatusIndex ? "completed" : ""}`}>
+      <p>{status}</p>
+    </div>
+  ))}
+</div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    </div>
+  </div>
+</div>
+
+  );
 };
 
 export default Ordertracking;
-
