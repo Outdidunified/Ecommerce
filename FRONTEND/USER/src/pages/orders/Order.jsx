@@ -6,10 +6,11 @@ import Footer from '../../Components/Footer';
 import Mobileview from "../../Components/Mobileview";
 
 const Order = ({ handleLogout, userdata }) => {
-   
     const [orders, setOrders] = useState([]);
     const [, setLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true); // Loader state
+    const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+    const [cancelOrderMessage, setCancelOrderMessage] = useState(""); // Message to display in the modal
     const token = localStorage.getItem("authToken");
     const navigate = useNavigate(); // Use the navigate hook
 
@@ -54,14 +55,38 @@ const Order = ({ handleLogout, userdata }) => {
     }, [userdata, token]);
 
     const handleOrderClick = (order) => {
+        if (order.order_status === "Canceled") {
+            setCancelOrderMessage("Your order was canceled.");
+            setIsModalOpen(true); // Open the modal when order is canceled
+            return; // Prevent navigation for canceled orders
+        }
         // Navigate to the /orderdetails page and pass the order data as state
         navigate("/orderdetails", { state: { order } });
+    };
+
+    // Define the status color mapping
+    const getStatusColor = (status) => {
+        const statusColors = {
+            Pending: "yellow",
+            Confirmed: "green",
+            Shipped: "blue",
+            Delivered: "purple",
+            Dispatched: "orange",
+            Canceled: "red",
+            "Out for Delivery": "cyan",
+        };
+        return statusColors[status] || "black"; // Default color if status doesn't match
+    };
+
+    // Close the modal
+    const closeModal = () => {
+        setIsModalOpen(false);
     };
 
     return (
         <div>
             <Header handleLogout={handleLogout} userdata={userdata} />
-            <Mobileview userdata={userdata}/>
+            <Mobileview userdata={userdata} />
             
             {isLoading ? (
                 <div className="fullpage-loader">
@@ -73,110 +98,150 @@ const Order = ({ handleLogout, userdata }) => {
                     <span></span>
                 </div>
             ) : (
-              <section className="cart-section section-b-space">
-    <div className="container-fluid-lg">
-        <div className="row g-sm-4 g-3">
-            <div className="col-xxl-12 col-lg-12">
-                <div className="cart-table order-table order-table-2">
-                    <div className="table-responsive" style={{ maxHeight: "600px", overflowY: "auto" }}>
-                        <table className="table table-expanded mb-0" style={{ width: "100%" }}>
-                            <tbody>
-                                {orders
-                                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-                                    .map((order) => (
-                                        <React.Fragment key={order.order_id}>
-                                            {/* Order Row */}
-                                            <tr onClick={() => handleOrderClick(order)} style={{ cursor: 'pointer' }}>
-                                                <td className="product-detail" style={{ width: "30%" }}>
-                                                    <div className="product border-0">
-                                                        <a href="product.left-sidebar.html" className="product-image">
-                                                            {order.items.length > 0 ? (
-                                                                <img
-                                                                    src={`${order.items[0].product_image}`}
-                                                                    className="img-fluid blur-up lazyload"
-                                                                    alt={order.items[0].product_name}
-                                                                />
-                                                            ) : (
-                                                                <img
-                                                                    src="../assets/images/vegetable/product/1.png"
-                                                                    className="img-fluid blur-up lazyload"
-                                                                    alt="No image available"
-                                                                />
-                                                            )}
-                                                        </a>
-                                                        <div className="product-detail">
-                                                            <ul>
-                                                                <li className="name">
-                                                                    <a href="product-left-thumbnail.html">
-                                                                        Order ID: {order.order_id}
-                                                                    </a>
-                                                                </li>
-                                                                <li className="text-content">
-                                                                    Sold By: {order.user_name}
-                                                                </li>
-                                                                <li className="text-content">
-                                                                    Contact: {order.contact_number}
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </td>
+                <section className="cart-section section-b-space">
+                    <div className="container-fluid-lg">
+                        <div className="row g-sm-4 g-3">
+                            <div className="col-xxl-12 col-lg-12">
+                                <div className="cart-table order-table order-table-2">
+                                    <div className="table-responsive" style={{ maxHeight: "600px", overflowY: "auto" }}>
+                                        <table className="table table-expanded mb-0" style={{ width: "100%" }}>
+                                            <tbody>
+                                                {orders
+                                                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                                                    .map((order) => (
+                                                        <React.Fragment key={order.order_id}>
+                                                            {/* Order Row */}
+                                                            <tr
+                                                                onClick={() => handleOrderClick(order)}
+                                                                style={{ cursor: order.order_status === "Canceled" ? 'default' : 'pointer' }}
+                                                            >
+                                                                <td className="product-detail" style={{ width: "30%" }}>
+                                                                    <div className="product border-0">
+                                                                        <a href="product.left-sidebar.html" className="product-image">
+                                                                            {order.items.length > 0 ? (
+                                                                                <img
+                                                                                    src={`${order.items[0].product_image}`}
+                                                                                    className="img-fluid blur-up lazyload"
+                                                                                    alt={order.items[0].product_name}
+                                                                                />
+                                                                            ) : (
+                                                                                <img
+                                                                                    src="../assets/images/vegetable/product/1.png"
+                                                                                    className="img-fluid blur-up lazyload"
+                                                                                    alt="No image available"
+                                                                                />
+                                                                            )}
+                                                                        </a>
+                                                                        <div className="product-detail">
+                                                                            <ul>
+                                                                                <li className="name">
+                                                                                    <a href="product-left-thumbnail.html">
+                                                                                        Order ID: {order.order_id}
+                                                                                    </a>
+                                                                                </li>
+                                                                                <li className="text-content">
+                                                                                    Sold to: {order.user_name}
+                                                                                </li>
+                                                                                <li className="text-content">
+                                                                                    Contact: {order.contact_number}
+                                                                                </li>
+                                                                            </ul>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
 
-                                                <td className="order-id" style={{ width: "15%" }}>
-                                                    <h4 className="table-title text-content">Order ID</h4>
-                                                    <h6>{order.order_id}</h6>
-                                                </td>
+                                                                <td className="order-id" style={{ width: "15%" }}>
+                                                                    <h4 className="table-title text-content">Order ID</h4>
+                                                                    <h6>{order.order_id}</h6>
+                                                                </td>
 
-                                                <td className="quantity" style={{ width: "15%" }}>
-                                                    <h4 className="table-title text-content">Order Status</h4>
-                                                    <h4
-                                                        className="text-title"
-                                                        style={{
-                                                            color:
-                                                                order.order_status === "Pending"
-                                                                    ? "yellow"
-                                                                    : order.order_status === "Confirmed"
-                                                                    ? "green"
-                                                                    : order.order_status === "Failed"
-                                                                    ? "red"
-                                                                    : "blue",
-                                                        }}
-                                                    >
-                                                        {order.order_status}
-                                                    </h4>
-                                                </td>
+                                                                <td className="quantity" style={{ width: "15%" }}>
+                                                                    <h4 className="table-title text-content">Order Status</h4>
+                                                                    <h4
+                                                                        className="text-title"
+                                                                        style={{
+                                                                            color: getStatusColor(order.order_status),
+                                                                        }}
+                                                                    >
+                                                                        {order.order_status}
+                                                                    </h4>
+                                                                </td>
 
-                                                <td className="address" style={{ width: "25%" }}>
-                                                    <h4 className="table-title text-content">Address</h4>
-                                                    <p>{`${order.house_no}, ${order.road_name}, ${order.city}, ${order.state}, ${order.pincode}`}</p>
-                                                </td>
+                                                                <td className="address" style={{ width: "25%" }}>
+                                                                    <h4 className="table-title text-content">Address</h4>
+                                                                    <p>{`${order.house_no}, ${order.road_name}, ${order.city}, ${order.state}, ${order.pincode}`}</p>
+                                                                </td>
 
-                                                <td className="expected-delivery" style={{ width: "15%" }}>
-                                                    <h4 className="table-title text-content">Expected Delivery</h4>
-                                                    <h6>{order.expected_delivery_date || "N/A"}</h6>
-                                                </td>
+                                                                <td className="expected-delivery" style={{ width: "15%" }}>
+                                                                    <h4 className="table-title text-content">Expected Delivery</h4>
+                                                                    <h6>{order.expected_delivery_date || "N/A"}</h6>
+                                                                </td>
 
-                                                <td className="price" style={{ width: "15%" }}>
-                                                    <h4 className="table-title text-content">Total Price</h4>
-                                                    <h6 className="theme-color">Rs.{order.total_price}</h6>
-                                                </td>
-                                            </tr>
+                                                                <td className="price" style={{ width: "15%" }}>
+                                                                    <h4 className="table-title text-content">Total Price</h4>
+                                                                    <h6 className="theme-color">Rs.{order.total_price}</h6>
+                                                                </td>
+                                                            </tr>
+                                                        </React.Fragment>
+                                                    ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
 
-                                        </React.Fragment>
-                                    ))}
-                            </tbody>
-                        </table>
+            <Footer />
+
+            {/* Custom Modal for canceled order */}
+            {isModalOpen && (
+                <div className="modal" style={modalStyle}>
+                    <div className="modal-content" style={modalContentStyle}>
+                        <h4>{cancelOrderMessage}</h4>
+                        <button className="button mt-3" onClick={closeModal} style={buttonStyle}>Close</button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
-
             )}
-            <Footer />
         </div>
     );
+};
+
+const modalStyle = {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    right: "0",
+    bottom: "0",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: "1000",
+};
+
+const modalContentStyle = {
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    textAlign: "center",
+    width: "280px", // Adjust width
+    height: "150px", // Adjust height
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+};
+
+
+const buttonStyle = {
+    backgroundColor: "#007BFF",
+    color: "white",
+    padding: "10px 20px",
+    border: "none",
+    cursor: "pointer",
+    borderRadius: "5px",
 };
 
 export default Order;

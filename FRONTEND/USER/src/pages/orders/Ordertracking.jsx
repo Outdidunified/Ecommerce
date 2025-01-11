@@ -3,12 +3,18 @@ import Header from "../../Components/Header";
 import Footer from "../../Components/Footer";
 import { useLocation } from "react-router-dom";
 import Mobileview from "../../Components/Mobileview";
+import MultiStepProgressBar from "../../Components/MultiStepProgressBar/MultiStepProgressBar";
 
 const Ordertracking = ({ handleLogout, userdata }) => {
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
   const { order } = location.state || {}; // Access the order passed as state
- 
+
+  // Define order status steps
+  const statusOrder = ['Confirmed', 'Dispatched', 'Shipped', 'Out for Delivery', 'Delivered'];
+
+  // Calculate the current step based on the order status
+  const currentStatusIndex = statusOrder.indexOf(order?.status); // Dynamic index based on order status
 
   useEffect(() => {
     // Set a timeout to stop the loader after 2 seconds
@@ -34,23 +40,23 @@ const Ordertracking = ({ handleLogout, userdata }) => {
       ) : (
         <>
           <Header handleLogout={handleLogout} userdata={userdata} />
-          <Mobileview userdata={userdata}/>
+          <Mobileview userdata={userdata} />
 
           {/* Breadcrumb Section Start */}
-          <section class="breadcrumb-section pt-0">
-            <div class="container-fluid-lg">
-              <div class="row">
-                <div class="col-12">
-                  <div class="breadcrumb-contain">
+          <section className="breadcrumb-section pt-0">
+            <div className="container-fluid-lg">
+              <div className="row">
+                <div className="col-12">
+                  <div className="breadcrumb-contain">
                     <h2>Order Tracking</h2>
                     <nav>
-                      <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item">
+                      <ol className="breadcrumb mb-0">
+                        <li className="breadcrumb-item">
                           <a href="index.html">
-                            <i class="fa-solid fa-house"></i>
+                            <i className="fa-solid fa-house"></i>
                           </a>
                         </li>
-                        <li class="breadcrumb-item active">Order Tracking</li>
+                        <li className="breadcrumb-item active">Order Tracking</li>
                       </ol>
                     </nav>
                   </div>
@@ -61,11 +67,11 @@ const Ordertracking = ({ handleLogout, userdata }) => {
           {/* Breadcrumb Section End */}
 
           {/* Order Detail Section Start */}
-          <section class="order-detail mb-5">
-            <div class="container-fluid-lg">
-              <div class="row g-sm-4 g-3">
-                <div class="col-xxl-3 col-xl-4 col-lg-6">
-                  <div class="order-image">
+          <section className="order-detail mb-2">
+            <div className="container-fluid-lg">
+              <div className="row g-sm-4 g-3">
+                <div className="col-xxl-3 col-xl-4 col-lg-6">
+                  <div className="order-image">
                     {order.items.length > 0 ? (
                       <img
                         src={`${order.items[0].product_image}`}
@@ -82,42 +88,42 @@ const Ordertracking = ({ handleLogout, userdata }) => {
                   </div>
                 </div>
 
-                <div class="col-xxl-9 col-xl-8 col-lg-6">
-                  <div class="row g-sm-4 g-3">
-                    <div class="col-xl-4 col-sm-6">
-                      <div class="order-details-contain">
-                        <div class="order-tracking-icon">
-                          <i data-feather="package" class="text-content"></i>
+                <div className="col-xxl-9 col-xl-8 col-lg-6">
+                  <div className="row g-sm-4 g-3">
+                    <div className="col-xl-4 col-sm-6">
+                      <div className="order-details-contain">
+                        <div className="order-tracking-icon">
+                          <i data-feather="package" className="text-content"></i>
                         </div>
 
-                        <div class="order-details-name">
-                          <h5 class="text-content">Tracking Code</h5>
-                          <h2 class="theme-color">{order.tracking_code}</h2>
+                        <div className="order-details-name">
+                          <h5 className="text-content">Tracking Code</h5>
+                          <h2 className="theme-color">{order.tracking_code}</h2>
                         </div>
                       </div>
                     </div>
 
-                    <div class="col-xl-4 col-sm-6">
-                      <div class="order-details-contain">
-                        <div class="order-tracking-icon">
-                          <i class="text-content" data-feather="map-pin"></i>
+                    <div className="col-xl-4 col-sm-6">
+                      <div className="order-details-contain">
+                        <div className="order-tracking-icon">
+                          <i className="text-content" data-feather="map-pin"></i>
                         </div>
 
-                        <div class="order-details-name">
-                          <h5 class="text-content">Destination</h5>
+                        <div className="order-details-name">
+                          <h5 className="text-content">Destination</h5>
                           <h4>{order.city}</h4>
                         </div>
                       </div>
                     </div>
 
-                    <div class="col-xl-4 col-sm-6">
-                      <div class="order-details-contain">
-                        <div class="order-tracking-icon">
-                          <i class="text-content" data-feather="calendar"></i>
+                    <div className="col-xl-4 col-sm-6">
+                      <div className="order-details-contain">
+                        <div className="order-tracking-icon">
+                          <i className="text-content" data-feather="calendar"></i>
                         </div>
 
-                        <div class="order-details-name">
-                          <h5 class="text-content">Estimated Time</h5>
+                        <div className="order-details-name">
+                          <h5 className="text-content">Estimated Time</h5>
                           <h4>
                             {order.expected_delivery_date
                               ? order.expected_delivery_date
@@ -127,36 +133,22 @@ const Ordertracking = ({ handleLogout, userdata }) => {
                       </div>
                     </div>
 
-                    <div class="col-12 overflow-hidden">
-                      <ol class="progtrckr">
-                        <li class="progtrckr-done">
-                          <h5>Pending</h5>
-                          <h6>05:43 AM</h6>
-                        </li>
-                        <li class="progtrckr-done">
-                          <h5>Confirmed</h5>
-                          <h6>01:21 PM</h6>
-                        </li>
-
-                        <li class="progtrckr-done">
-                          <h5>Dispatched</h5>
-                          <h6>Pending</h6>
-                        </li>
-                        <li class="progtrckr-todo">
-                          <h5>Shipped</h5>
-                          <h6>Pending</h6>
-                        </li>
-
-                        <li class="progtrckr-todo">
-                          <h5>Out for delivery</h5>
-                          <h6>Pending</h6>
-                        </li>
-                        <li class="progtrckr-todo">
-                          <h5>Delivered</h5>
-                          <h6>Pending</h6>
-                        </li>
-                      </ol>
+                    <div className="col-12 overflow-hidden ">
+                      <MultiStepProgressBar 
+                        orderStatus={order.order_status} // Pass the current order status
+                        statusOrder={statusOrder} // Pass the status order array
+                      />
                     </div>
+
+                    {/* Status Titles */}
+                    {/* <div className="order-status-titles">
+                      {statusOrder.map((status, index) => (
+                        <div key={index} className={`status-title ${index <= currentStatusIndex ? "completed" : ""}`}>
+                          <p>{status}</p>
+                        </div>
+                      ))}
+                    </div> */}
+
                   </div>
                 </div>
               </div>
