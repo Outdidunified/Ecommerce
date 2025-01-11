@@ -187,7 +187,7 @@ exports.failure= (req, res) => {
 
   // Update order status
   const updateOrderStatusQuery = 'UPDATE orders SET status = ? WHERE order_id = ?';
-  db.query(updateOrderStatusQuery, ['Canceled', order_id]);
+  db.query(updateOrderStatusQuery, ['Cancelled', order_id]);
 
   res.json({ message: 'Payment failed and order canceled' });
 
@@ -319,12 +319,6 @@ exports.getOrderDetailsForUser = (req, res) => {
 };
 
 
-
-
-
-
-
-// Place Order with "Buy Now" and Handle Payment
 exports.buynow = (req, res) => {
   const { user_id, product_id, quantity, delivery_address } = req.body;
 

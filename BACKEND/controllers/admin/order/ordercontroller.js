@@ -121,18 +121,18 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 
   const allowedStatuses = ['Confirmed', 'Shipped', 'Dispatched', 'Out for Delivery', 'Delivered'];
 
+  // Validate input
   if (!allowedStatuses.includes(status)) {
     return res.status(400).json({ error: 'Invalid order status' });
   }
-
   if (!order_id) {
     return res.status(400).json({ error: 'Order ID is required' });
   }
-
   if (!modified_by) {
     return res.status(400).json({ error: 'Modified by is required' });
   }
 
+  // Validate expected delivery date format
   let formattedDate = null;
   if (expected_delivery_date) {
     const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
@@ -148,11 +148,17 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     }
   }
 
-  const checkStatusQuery = `SELECT status FROM orders WHERE order_id = ?;`;
+  // Query to check the order status and payment status
+  const checkStatusQuery = `
+    SELECT o.status, p.payment_status 
+    FROM orders o
+    LEFT JOIN payments p ON o.order_id = p.order_id
+    WHERE o.order_id = ?;
+  `;
 
   db.query(checkStatusQuery, [order_id], (err, result) => {
     if (err) {
-      return res.status(500).json({ error: 'Failed to fetch order status', details: err });
+      return res.status(500).json({ error: 'Failed to fetch order and payment status', details: err });
     }
 
     if (result.length === 0) {
@@ -160,11 +166,19 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     }
 
     const currentStatus = result[0].status;
+    const paymentStatus = result[0].payment_status;
 
+    // Check if payment is completed
+    if (paymentStatus !== 'Completed') {
+      return res.status(400).json({ error: 'Order cannot be updated as payment is not confirmed.' });
+    }
+
+    // Prevent updates if the order is already delivered
     if (currentStatus === 'Delivered') {
       return res.status(400).json({ error: 'Order cannot be updated after being delivered.' });
     }
 
+    // Update query
     const updateQuery = `
       UPDATE orders 
       SET 
@@ -189,6 +203,7 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     });
   });
 };
+
 
 
 
