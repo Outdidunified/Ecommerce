@@ -183,11 +183,11 @@ exports.failure= (req, res) => {
 
   // Update payment status in DB
   const updatePaymentStatusQuery = 'UPDATE payments SET payment_status = ? WHERE razorpay_payment_id = ?';
-  db.query(updatePaymentStatusQuery, ['Failed', razorpay_payment_id]);
+  db.query(updatePaymentStatusQuery, ['Incomplete', razorpay_payment_id]);
 
   // Update order status
   const updateOrderStatusQuery = 'UPDATE orders SET status = ? WHERE order_id = ?';
-  db.query(updateOrderStatusQuery, ['Cancelled', order_id]);
+  db.query(updateOrderStatusQuery, ['Pending', order_id]);
 
   res.json({ message: 'Payment failed and order canceled' });
 
@@ -231,7 +231,9 @@ exports.getOrderDetailsForUser = (req, res) => {
     JOIN payments p ON o.order_id = p.order_id
     JOIN delivery_address d ON o.order_id = d.order_id
     JOIN order_items oi ON o.order_id = oi.order_id
-    WHERE o.user_id = ?
+    WHERE o.user_id = ? 
+      AND o.status NOT IN ('Pending', 'Cancelled') 
+      AND p.payment_status = 'Completed' -- Include only completed payments
     GROUP BY o.order_id;
   `;
 
@@ -241,7 +243,7 @@ exports.getOrderDetailsForUser = (req, res) => {
     }
 
     if (result.length === 0) {
-      return res.status(404).json({ error: 'No orders found for the user' });
+      return res.status(404).json({ error: 'No orders found for the user with completed payment status' });
     }
 
     // Map the results to the desired format
@@ -259,10 +261,7 @@ exports.getOrderDetailsForUser = (req, res) => {
       let formattedDeliveryDate = null;
 
       // Format expected_delivery_date as "DD/MM/YYYY"
-      if (
-        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status) &&
-        order.expected_delivery_date
-      ) {
+      if (order.expected_delivery_date) {
         const date = new Date(order.expected_delivery_date);
         formattedDeliveryDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
           .toString()
@@ -272,17 +271,13 @@ exports.getOrderDetailsForUser = (req, res) => {
       // Parse items field into an array of objects
       const items = order.items ? JSON.parse(`[${order.items}]`) : [];
 
-      // Check if payment is completed and order is eligible for tracking code
-      const showTrackingCode = order.payment_status === 'Completed' && 
-        ['Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered'].includes(order.order_status);
-
       // Map the order response into the desired structure
       const orderResponse = {
         order_id: order.order_id,
         total_price: order.total_price,
         order_status: order.order_status,
-        created_date: formattedCreatedDate, // Include formatted created_date
-        expected_delivery_date: formattedDeliveryDate, // Include formatted expected_delivery_date
+        created_date: formattedCreatedDate,
+        expected_delivery_date: formattedDeliveryDate,
         payment_status: order.payment_status,
         razorpay_payment_id: order.razorpay_payment_id,
         user_name: order.user_name,
@@ -292,7 +287,7 @@ exports.getOrderDetailsForUser = (req, res) => {
         state: order.state,
         house_no: order.house_no,
         road_name: order.road_name,
-        tracking_code: showTrackingCode ? order.tracking_code : null,  
+        tracking_code: order.tracking_code,
         items: items.map(item => ({
           product_id: item.product_id,
           product_name: item.product_name,
@@ -303,20 +298,18 @@ exports.getOrderDetailsForUser = (req, res) => {
         })),
       };
 
-      // Exclude expected_delivery_date for Pending or Canceled orders
-      if (order.order_status === 'Pending' || order.order_status === 'Canceled') {
-        delete orderResponse.expected_delivery_date;
-      }
-
       return orderResponse;
     });
 
     res.json({
-      message: 'Order details fetched successfully',
+      message: 'Order details with completed payments fetched successfully',
       orders: parsedResult,
     });
   });
 };
+
+
+
 
 
 exports.buynow = (req, res) => {
