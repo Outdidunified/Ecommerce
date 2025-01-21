@@ -20,9 +20,9 @@ const Productpage = ({ handleLogout, userdata }) => {
   
   const [quantity, ] = useState(1); // State to store the quantity
   const isLoggedIn = userdata && userdata.user_name;
+      const [isLoading, setIsLoading] = useState(true);
 
   const [productData, setProductData] = useState(null); // Store product data
-  const [loading, ] = useState(true); // Track loading state
 
   useEffect(() => {
     if (subCategoryId) {
@@ -41,9 +41,15 @@ const Productpage = ({ handleLogout, userdata }) => {
           toast.error('Failed to load product data');
         }
       };
+     
       fetchCartItems(); 
   
       fetchProductData(); // Call the API when component mounts
+         // Set a timeout to stop the loader after 2 seconds
+         const timer = setTimeout(() => {
+          setIsLoading(false); // Hide loader and show content
+        }, 1000); // 1 second delay
+        return () => clearTimeout(timer);  
       
     }
   }, [subCategoryId,fetchCartItems]); // Dependency on subCategoryId to trigger when it changes
@@ -116,100 +122,108 @@ const Productpage = ({ handleLogout, userdata }) => {
 
   return (
     <div>
-      <Header handleLogout={handleLogout} userdata={userdata} />
-      <Mobileview userdata={userdata}/>
-      <section className="breadcrumb-section pt-0">
-        <div className="container-fluid-lg">
-          <div className="row">
-            <div className="col-12">
-              <div className="breadcrumb-contain">
-                <h2>{subCategoryName}</h2>
+      {isLoading?(
+         <div className="fullpage-loader">
+         <span></span>
+         <span></span>
+         <span></span>
+         <span></span>
+         <span></span>
+         <span></span>
+       </div>
+      ):(
+        <>
+        <Header handleLogout={handleLogout} userdata={userdata} />
+        <Mobileview userdata={userdata}/>
+        <section className="breadcrumb-section pt-0">
+          <div className="container-fluid-lg">
+            <div className="row">
+              <div className="col-12">
+                <div className="breadcrumb-contain">
+                  <h2>{subCategoryName}</h2>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+         <section className="section-b-space shop-section">
+         <div className="container-fluid-lg">
+           <div className="row">
+             <div className="col-12">
+ 
+               
+                 <div className="row g-sm-4 g-3 row-cols-xxl-5 row-cols-xl-3 row-cols-lg-2 row-cols-md-3 row-cols-2 product-list-section">
+                   {productData && productData.length > 0 ? (
+                     productData.map((product) => (
+                       <div key={product.product_id}>
+                         <div className="product-box-3 h-100 wow fadeInUp">
+                           <div className="product-header">
+                             <div className="product-image">
+                               <Link to="/viewproducts" state={{ product }}>
+                                 <img
+                                   src={product.image || '../assets/images/cake/product/2.png'}
+                                   className="img-fluid blur-up lazyload"
+                                   alt={product.product_name}
+                                 />
+                               </Link>
+                             </div>
+                           </div>
+                           <div className="product-footer">
+                             <div className="product-detail">
+                               <span className="span-name">{product.unit}</span>
+                               <Link to="/viewproducts" state={{ product }}>
+                                 <h5 className="name">{product.product_name}</h5>
+                               </Link>
+                               <p className="text-content mt-1 mb-2 product-content">{product.description}</p>
+                               <h6 className="unit">{product.unit}</h6>
+                               <h5 className="price">
+                                 <span className="theme-color">Rs.{product.price}</span>
+                               </h5>
+                               <div className="add-to-cart-box bg-white">
+                                 <button className="btn btn-add-cart addcart-button" onClick={() => handleClick(product)}>
+                                   Add
+                                   <span className="add-icon bg-light-gray">
+                                     <i className="fa-solid fa-plus"></i>
+                                   </span>
+                                 </button>
+                                 <div className="cart_qty qty-box">
+                                   <div className="input-group bg-white">
+                                     <button type="button" className="qty-left-minus bg-gray" data-type="minus">
+                                       <i className="fa fa-minus"></i>
+                                     </button>
+                                     <input className="form-control input-number qty-input" type="text" name="quantity" value={quantity} />
+                                     <button type="button" className="qty-right-plus bg-gray" data-type="plus">
+                                       <i className="fa fa-plus"></i>
+                                     </button>
+                                   </div>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     ))
+                   ) : (
+                     <div className="alert alert-warning text-center">
+                       <strong>No Products available</strong>
+                     </div>
+                   )}
+                 </div>
+            
+             </div>
+           </div>
+         </div>
+       </section>
+ 
+       <ToastContainer />
+       <Footer />
+       </>
+  
 
-      <section className="section-b-space shop-section">
-        <div className="container-fluid-lg">
-          <div className="row">
-            <div className="col-12">
 
-              {loading ? (
-                <div className="fullpage-loader">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              ) : (
-                <div className="row g-sm-4 g-3 row-cols-xxl-5 row-cols-xl-3 row-cols-lg-2 row-cols-md-3 row-cols-2 product-list-section">
-                  {productData && productData.length > 0 ? (
-                    productData.map((product) => (
-                      <div key={product.product_id}>
-                        <div className="product-box-3 h-100 wow fadeInUp">
-                          <div className="product-header">
-                            <div className="product-image">
-                              <Link to="/viewproducts" state={{ product }}>
-                                <img
-                                  src={product.image || '../assets/images/cake/product/2.png'}
-                                  className="img-fluid blur-up lazyload"
-                                  alt={product.product_name}
-                                />
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="product-footer">
-                            <div className="product-detail">
-                              <span className="span-name">{product.unit}</span>
-                              <Link to="/viewproducts" state={{ product }}>
-                                <h5 className="name">{product.product_name}</h5>
-                              </Link>
-                              <p className="text-content mt-1 mb-2 product-content">{product.description}</p>
-                              <h6 className="unit">{product.unit}</h6>
-                              <h5 className="price">
-                                <span className="theme-color">Rs.{product.price}</span>
-                              </h5>
-                              <div className="add-to-cart-box bg-white">
-                                <button className="btn btn-add-cart addcart-button" onClick={() => handleClick(product)}>
-                                  Add
-                                  <span className="add-icon bg-light-gray">
-                                    <i className="fa-solid fa-plus"></i>
-                                  </span>
-                                </button>
-                                <div className="cart_qty qty-box">
-                                  <div className="input-group bg-white">
-                                    <button type="button" className="qty-left-minus bg-gray" data-type="minus">
-                                      <i className="fa fa-minus"></i>
-                                    </button>
-                                    <input className="form-control input-number qty-input" type="text" name="quantity" value={quantity} />
-                                    <button type="button" className="qty-right-plus bg-gray" data-type="plus">
-                                      <i className="fa fa-plus"></i>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="alert alert-warning text-center">
-                      <strong>No Products available</strong>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <ToastContainer />
-      <Footer />
+      )}
+      
+     
     </div>
   );
 };

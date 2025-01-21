@@ -399,13 +399,15 @@ exports.getAllUsers = (req, res) => {
       return res.status(403).json({ message: 'Admin rights are required to fetch all users' });
     }
 
-    db.query('SELECT * FROM users', (err, result) => {
+    // Query to get only users where active = 1
+    db.query('SELECT * FROM users WHERE active = 1', (err, result) => {
       if (err) return res.status(500).json({ message: 'Database error', error: err });
 
       res.status(200).json({
-        message: 'Users retrieved successfully',
+        message: 'Active users retrieved successfully',
         users: result
       });
     });
   });
 };
+

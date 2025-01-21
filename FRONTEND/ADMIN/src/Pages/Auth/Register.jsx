@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { ToastContainer, toast } from "react-custom-alert";
+import "react-custom-alert/dist/index.css";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,40 +10,81 @@ const Register = () => {
     email: '',
     password: '',
     role: 'admin', // Default role
+    termsAccepted: false,
   });
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [termsError, setTermsError] = useState('');
   const navigate = useNavigate();
 
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+  const usernameRegex = /^[a-zA-Z0-9]{3,15}$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
+
   const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
+    const { id, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [id]: type === 'checkbox' ? checked : value,
+    });
   };
 
   const handleRegister = async (e) => {
+    e.preventDefault();
+
+    // Reset errors
+    setUsernameError('');
+    setEmailError('');
+    setPasswordError('');
+    setTermsError('');
+    setError('');
+
+
+    // Validate username
+    if (!usernameRegex.test(formData.username)) {
+      setUsernameError('Username must be at least 3-15 characters long and contain only letters, numbers, and underscores.');
+      return;
+    }
+
+    // Validate email
+    if (!emailRegex.test(formData.email)) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    // Validate password
+    if (!passwordRegex.test(formData.password)) {
+      setPasswordError('Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.');
+      return;
+    }
+
+    // Validate terms
+    if (!formData.termsAccepted) {
+      setTermsError('You must accept the terms and privacy policy.');
+      return;
+    }
+
     const registerData = {
       username: formData.username,
       email_id: formData.email,
       password: formData.password,
       user_type: formData.role,
     };
-    e.preventDefault();
+
     try {
       const response = await axios.post('/admin/signup', registerData);
       if (response.status === 200) {
-        setSuccess('Registration successful! Redirecting to login page...');
-        
-        
-        // Wait for the success message to be displayed, then navigate
+         toast.success('Registration successful! Redirecting to login page...');
         setTimeout(() => navigate('/'), 2000); // Redirect after 2 seconds
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred. Please try again.');
-     
+      toast.error(err.response?.data?.message || 'An error occurred. Please try again.');
     }
   };
-  
 
   return (
     <div>
@@ -72,6 +115,7 @@ const Register = () => {
                           required
                         />
                         <label htmlFor="username">Username</label>
+                        {usernameError && <div className="text-danger mt-2">{usernameError}</div>}
                       </div>
                     </div>
 
@@ -87,6 +131,7 @@ const Register = () => {
                           required
                         />
                         <label htmlFor="email">Email Address</label>
+                        {emailError && <div className="text-danger mt-2">{emailError}</div>}
                       </div>
                     </div>
 
@@ -102,6 +147,7 @@ const Register = () => {
                           required
                         />
                         <label htmlFor="password">Password</label>
+                        {passwordError && <div className="text-danger mt-2">{passwordError}</div>}
                       </div>
                     </div>
 
@@ -111,13 +157,16 @@ const Register = () => {
                           <input
                             className="checkbox_animated check-box"
                             type="checkbox"
-                            id="termsCheckbox"
+                            id="termsAccepted"
+                            checked={formData.termsAccepted}
+                            onChange={handleInputChange}
                             required
                           />
-                          <label className="form-check-label" htmlFor="termsCheckbox">
+                          <label className="form-check-label" htmlFor="termsAccepted">
                             I accept the terms and privacy policy.
                           </label>
                         </div>
+                        {termsError && <div className="text-danger mt-2">{termsError}</div>}
                       </div>
                     </div>
 
@@ -171,6 +220,7 @@ const Register = () => {
           </div>
         </div>
       </section>
+        <ToastContainer />
     </div>
   );
 };
