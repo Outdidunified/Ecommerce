@@ -237,7 +237,6 @@ exports.getsubCategories = (req, res) => {
 };
 
 exports.getcategory = (req, res) => {
-  // Query to get categories with status = 1 from the database
   const query = 'SELECT category_id, category_name FROM main_categor WHERE status = 1';
 
   connection.query(query, (err, results) => {
@@ -250,6 +249,7 @@ exports.getcategory = (req, res) => {
     res.status(200).json({ categories: results });
   });
 };
+
 
 
 
