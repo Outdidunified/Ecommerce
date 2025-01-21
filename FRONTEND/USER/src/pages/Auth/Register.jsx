@@ -8,6 +8,13 @@ import Mobileview from "../../Components/Mobileview";
 const Register = () => {
   const [, setSuccess] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+      const [passwordError, setPasswordError] = useState('');
+      const [usernameError, setUsernameError] = useState('');
+      const [emailError, setEmailError] = useState('');
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+    const usernameRegex = /^[a-zA-Z0-9]{3,15}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
+      const [termsError, setTermsError] = useState('');
 
   const [, setError] = useState('');
   const navigate = useNavigate();
@@ -38,6 +45,31 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+     // Validate username
+     if (!usernameRegex.test(formData.username)) {
+      setUsernameError('Username must be at least 3-15 characters long and contain only letters, numbers, and underscores.');
+      return;
+    }
+
+    // Validate email
+    if (!emailRegex.test(formData.email)) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    // Validate password
+    if (!passwordRegex.test(formData.password)) {
+      setPasswordError('Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.');
+      return;
+    }
+
+       // Validate terms
+       if (!formData.termsAccepted) {
+        setTermsError('You must accept the terms and privacy policy.');
+        return;
+      }
+
     const registerData = {
       username: formData.username,
       email_id: formData.email_id, // Corrected field name
@@ -119,6 +151,7 @@ const Register = () => {
                           required
                         />
                         <label htmlFor="username">Full Name</label>
+                        {usernameError && <div className="text-danger mt-2">{usernameError}</div>}
                       </div>
                     </div>
                     <div className="col-12">
@@ -133,6 +166,7 @@ const Register = () => {
                           required
                         />
                         <label htmlFor="email_id">Email Address</label>
+                        {emailError && <div className="text-danger mt-2">{emailError}</div>}
                       </div>
                     </div>
 
@@ -148,6 +182,7 @@ const Register = () => {
                           required
                         />
                         <label htmlFor="password">Password</label>
+                        {passwordError && <div className="text-danger mt-2">{passwordError}</div>}
                       </div>
                     </div>
                     <div class="col-12">
@@ -165,6 +200,7 @@ const Register = () => {
                             I agree with
                             <span>Terms</span> and <span>Privacy</span>
                           </label>
+                          {termsError && <div className="text-danger mt-2">{termsError}</div>}
                         </div>
                       </div>
                     </div>
