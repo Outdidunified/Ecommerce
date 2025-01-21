@@ -114,8 +114,6 @@ exports.getAllOrdersForAdmin = (req, res) => {
   });
 };
 
-
-
 exports.updateOrderStatusByAdmin = (req, res) => {
   const { order_id, status, expected_delivery_date, modified_by } = req.body;
 
