@@ -10,9 +10,8 @@ import { useCart } from "../Utilities/CartContext";
 const Header = ({ handleLogout, userdata }) => {
   const [categories, setCategories] = useState([]); // Initialize as an empty array
   const navigate = useNavigate();
-  const { fetchCartItems, updateCartCount } = useCart();
+  const { fetchCartItems , cartCount} = useCart();
 
-  const { cartCount } = useCart();
 
   const isLoggedIn = userdata && userdata.user_name;
 
@@ -24,7 +23,7 @@ const Header = ({ handleLogout, userdata }) => {
 
         // Ensure categories is an array
         if (Array.isArray(response.data.categories)) {
-          console.log(response.data.categories);
+         
           setCategories(response.data.categories);
         } else {
           console.error("Invalid categories data structure:", response.data);
@@ -41,12 +40,14 @@ const Header = ({ handleLogout, userdata }) => {
     fetchCategories();
   }, [fetchCartItems]);
 
+  
+
   const handleCartClick = () => {
     if (isLoggedIn) {
       // If the user is logged in, navigate to the cart page
       navigate("/addtocart");
     } else {
-      updateCartCount(0);
+      fetchCartItems();
       // Show a custom toast notification if not logged in
       toast.info(
         <div>

@@ -1,15 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { ToastContainer, toast } from "react-custom-alert";
+import "react-custom-alert/dist/index.css";
 
 const Login = ({ handleLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+      const [passwordError, setPasswordError] = useState('');
+      const [emailError, setEmailError] = useState('');
     const navigate = useNavigate();
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
 
     const Loginfunction = async (e) => {
         e.preventDefault(); // Prevent form submission
+
+         // Validate email
+    if (!emailRegex.test(email)) {
+        setEmailError('Please enter a valid email address.');
+        return;
+      }
+  
+      // Validate password
+      if (!passwordRegex.test(password)) {
+        setPasswordError('Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.');
+        return;
+      }
+  
         try {
             // Make the POST request to the backend
             const response = await axios.post('admin/signin', {
@@ -40,10 +60,10 @@ const Login = ({ handleLogin }) => {
                 // Redirect to the dashboard
                 navigate('/dashboard');
             } else {
-                throw new Error('Login failed: Invalid credentials');
+                toast.error('Login failed: Invalid credentials');
             }
         } catch (err) {
-            setErrorMessage(err.response?.data?.message || 'Login failed');
+            toast.error(err.response?.data?.message || 'Login failed');
         }
     };
     
@@ -76,6 +96,7 @@ const Login = ({ handleLogin }) => {
                                                 required
                                             />
                                             <label htmlFor="email">Email Address</label>
+                                            {emailError && <div className="text-danger mt-2">{emailError}</div>}
                                         </div>
                                     </div>
                                     <div className="col-12">
@@ -90,6 +111,7 @@ const Login = ({ handleLogin }) => {
                                                 required
                                             />
                                             <label htmlFor="password">Password</label>
+                                            {passwordError && <div className="text-danger mt-2">{passwordError}</div>}
                                         </div>
                                     </div>
                                     {errorMessage && (
@@ -132,6 +154,7 @@ const Login = ({ handleLogin }) => {
                     </div>
                 </div>
             </section>
+              <ToastContainer />
         </div>
     );
 };
