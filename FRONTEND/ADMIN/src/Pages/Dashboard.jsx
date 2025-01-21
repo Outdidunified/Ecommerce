@@ -1,131 +1,147 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Sidebar from '../Components/Sidebar/Sidebar';
 import Header from '../Components/Header/Header';
 import Footer from '../Components/Footer/footer';
 
-const Dashboard = ({handleLogout,token,adminData}) => {
-      console.log(token);
-        console.log(adminData);
+const Dashboard = ({ handleLogout, token, adminData }) => {
+    const [orderSummary, setOrderSummary] = useState({
+        total_orders: 0,
+        pending_orders: 0,
+        total_customers: 0,
+        total_products: 0,
+    });
+
+    useEffect(() => {
+        // Fetch order summary data
+        const fetchOrderSummary = async () => {
+            try {
+                const response = await fetch('/Orders/ordersummary', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch order summary');
+                }
+
+                const data = await response.json();
+                if (data.message === 'Order summary fetched successfully') {
+                    console.log(data);
+                    setOrderSummary(data.order_summary);
+                }
+            } catch (error) {
+                console.error('Error fetching order summary:', error);
+            }
+        };
+
+        fetchOrderSummary();
+    }, [token]);
 
     return (
         <div>
-          
-         {/* page-wrapper Start*/}
-    <div class="page-wrapper compact-wrapper" id="pageWrapper">
-     {/* Page Header Start*/}<Header handleLogout={handleLogout} adminData={adminData} />
-     {/* Page Header Ends*/}
+            {/* page-wrapper Start*/}
+            <div className="page-wrapper compact-wrapper" id="pageWrapper">
+                {/* Page Header Start */}
+                <Header handleLogout={handleLogout} adminData={adminData} />
+                {/* Page Header Ends */}
 
-     {/* Page Body Start*/}
-        <div class="page-body-wrapper">
-         {/* Page Sidebar Start*/}
-         <Sidebar adminData={adminData} />
-         {/* Page Sidebar Ends*/}
+                {/* Page Body Start */}
+                <div className="page-body-wrapper">
+                    {/* Page Sidebar Start */}
+                    <Sidebar adminData={adminData} />
+                    {/* Page Sidebar Ends */}
 
-         {/* index body start */}
-            <div class="page-body">
-                <div class="container-fluid">
-                    <div class="row">
-                     {/* chart caard section start */}
-                        <div class="col-sm-6 col-xxl-3 col-lg-6">
-                            <div class="main-tiles border-5 border-0  card-hover card o-hidden">
-                                <div class="custome-1-bg b-r-4 card-body">
-                                    <div class="media align-items-center static-top-widget">
-                                        <div class="media-body p-0">
-                                            <span class="m-0">Total Revenue</span>
-                                            <h4 class="mb-0 counter">$6659
-                                                <span class="badge badge-light-primary grow">
-                                                    <i data-feather="trending-up"></i>8.5%</span>
-                                            </h4>
-                                        </div>
-                                        <div class="align-self-center text-center">
-                                            <i class="ri-database-2-line"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-xxl-3 col-lg-6">
-                            <div class="main-tiles border-5 card-hover border-0 card o-hidden">
-                                <div class="custome-2-bg b-r-4 card-body">
-                                    <div class="media static-top-widget">
-                                        <div class="media-body p-0">
-                                            <span class="m-0">Total Orders</span>
-                                            <h4 class="mb-0 counter">9856
-                                                <span class="badge badge-light-danger grow">
-                                                    <i data-feather="trending-down"></i>8.5%</span>
-                                            </h4>
-                                        </div>
-                                        <div class="align-self-center text-center">
-                                            <i class="ri-shopping-bag-3-line"></i>
+                    {/* index body start */}
+                    <div className="page-body">
+                        <div className="container-fluid">
+                            <div className="row">
+                                {/* Chart card section start */}
+                                <div className="col-sm-6 col-xxl-3 col-lg-6">
+                                    <div className="main-tiles border-5 border-0 card-hover card o-hidden">
+                                        <div className="custome-1-bg b-r-4 card-body">
+                                            <div className="media align-items-center static-top-widget">
+                                                <div className="media-body p-0">
+                                                    <span className="m-0">Total Orders</span>
+                                                    <h4 className="mb-0 counter">
+                                                        {orderSummary.total_orders}
+                                                    </h4>
+                                                </div>
+                                                <div className="align-self-center text-center">
+                                                    <i className="ri-shopping-bag-3-line"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="col-sm-6 col-xxl-3 col-lg-6">
-                            <div class="main-tiles border-5 card-hover border-0  card o-hidden">
-                                <div class="custome-3-bg b-r-4 card-body">
-                                    <div class="media static-top-widget">
-                                        <div class="media-body p-0">
-                                            <span class="m-0">Total Products</span>
-                                            <h4 class="mb-0 counter">893
-                                                <a href="add-new-product.html" class="badge badge-light-secondary grow">
-                                                    ADD NEW</a>
-                                            </h4>
-                                        </div>
-
-                                        <div class="align-self-center text-center">
-                                            <i class="ri-chat-3-line"></i>
+                                <div className="col-sm-6 col-xxl-3 col-lg-6">
+                                    <div className="main-tiles border-5 card-hover border-0 card o-hidden">
+                                        <div className="custome-2-bg b-r-4 card-body">
+                                            <div className="media static-top-widget">
+                                                <div className="media-body p-0">
+                                                    <span className="m-0">Pending Orders</span>
+                                                    <h4 className="mb-0 counter">
+                                                        {orderSummary.pending_orders}
+                                                    </h4>
+                                                </div>
+                                                <div className="align-self-center text-center">
+                                                    <i className="ri-database-2-line"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="col-sm-6 col-xxl-3 col-lg-6">
-                            <div class="main-tiles border-5 card-hover border-0 card o-hidden">
-                                <div class="custome-4-bg b-r-4 card-body">
-                                    <div class="media static-top-widget">
-                                        <div class="media-body p-0">
-                                            <span class="m-0">Total Customers</span>
-                                            <h4 class="mb-0 counter">4.6k
-                                                <span class="badge badge-light-success grow">
-                                                    <i data-feather="trending-down"></i>8.5%</span>
-                                            </h4>
-                                        </div>
-
-                                        <div class="align-self-center text-center">
-                                            <i class="ri-user-add-line"></i>
+                                <div className="col-sm-6 col-xxl-3 col-lg-6">
+                                    <div className="main-tiles border-5 card-hover border-0 card o-hidden">
+                                        <div className="custome-3-bg b-r-4 card-body">
+                                            <div className="media static-top-widget">
+                                                <div className="media-body p-0">
+                                                    <span className="m-0">Total Products</span>
+                                                    <h4 className="mb-0 counter">{orderSummary.total_products}</h4>
+                                                </div>
+                                                <div className="align-self-center text-center">
+                                                    <i className="ri-chat-3-line"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="col-sm-6 col-xxl-3 col-lg-6">
+                                    <div className="main-tiles border-5 card-hover border-0 card o-hidden">
+                                        <div className="custome-4-bg b-r-4 card-body">
+                                            <div className="media static-top-widget">
+                                                <div className="media-body p-0">
+                                                    <span className="m-0">Total Customers</span>
+                                                    <h4 className="mb-0 counter">{orderSummary.total_customers}</h4>
+                                                </div>
+                                                <div className="align-self-center text-center">
+                                                    <i className="ri-user-add-line"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Chart card section End */}
                             </div>
                         </div>
 
-                        
-                     {/* chart card section End */}
-
+                        {/* footer start */}
+                        <Footer />
+                        {/* footer End */}
                     </div>
+                    {/* index body end */}
                 </div>
-            
-
-             {/* footer start*/}
-             <Footer/>
-                
-             {/* footer End*/}
+                {/* Page Body End */}
             </div>
-         {/* index body end */}
-
-        </div>
-     {/* Page Body End */}
-    </div>
- {/* page-wrapper End*/}
+            {/* page-wrapper End */}
         </div>
     );
 };
 
 export default Dashboard;
-
