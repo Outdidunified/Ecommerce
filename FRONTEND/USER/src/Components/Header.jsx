@@ -24,6 +24,7 @@ const Header = ({ handleLogout, userdata }) => {
 
         // Ensure categories is an array
         if (Array.isArray(response.data.categories)) {
+          console.log(response.data.categories);
           setCategories(response.data.categories);
         } else {
           console.error("Invalid categories data structure:", response.data);
