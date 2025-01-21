@@ -22,7 +22,8 @@ const Register = () => {
   const navigate = useNavigate();
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
-  const usernameRegex = /^[a-zA-Z0-9]{3,15}$/;
+  const usernameRegex = /^[a-zA-Z][a-zA-Z0-9]{2,14}$/;
+
   const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
 
   const handleInputChange = (e) => {
