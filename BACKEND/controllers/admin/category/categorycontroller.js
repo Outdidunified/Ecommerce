@@ -83,8 +83,8 @@ exports.addSubCategory = (req, res) => {
 
 // Function to get all main categories with their respective subcategories
 exports.getAllCategories = (req, res) => {
-  // Query to fetch all main categories
-  const query = 'SELECT * FROM main_categor WHERE status = TRUE';
+  // Query to fetch all main categories with status = 1
+  const query = 'SELECT * FROM main_categor WHERE status = 1';
 
   connection.query(query, (err, mainCategories) => {
     if (err) {
@@ -102,7 +102,7 @@ exports.getAllCategories = (req, res) => {
     // Process each main category
     const fetchSubCategoriesPromises = mainCategories.map((mainCategory) => {
       return new Promise((resolve, reject) => {
-        const subCategoryQuery = 'SELECT * FROM sub_categor WHERE main_category_id = ? AND status = TRUE';
+        const subCategoryQuery = 'SELECT * FROM sub_categor WHERE main_category_id = ? AND status = 1';
 
         connection.query(subCategoryQuery, [mainCategory.category_id], (err, subCategories) => {
           if (err) {
@@ -128,6 +128,7 @@ exports.getAllCategories = (req, res) => {
       });
   });
 };
+
 
 
 // Function to update a category

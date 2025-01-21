@@ -54,13 +54,15 @@ exports.addProduct = (req, res) => {
   // Get all products
   exports.getAllProducts = (req, res) => {
     const query = `
-        SELECT p.product_id, p.product_name, p.price, p.unit, p.quantity, p.exchangable, p.refundable, p.created_by, p.description, 
-               p.image, p.image2, p.modified_by, p.modified_date, p.created_date, p.status,
+        SELECT p.product_id, p.product_name, p.price, p.unit, p.quantity, p.exchangable, p.refundable, 
+               p.created_by, p.description, p.image, p.image2, p.modified_by, 
+               p.modified_date, p.created_date, p.status,
                c.category_name, s.sub_category_name
         FROM product p
         JOIN main_categor c ON p.category_id = c.category_id
         JOIN sub_categor s ON p.sub_category_id = s.sub_category_id
-        ORDER BY p.created_date ASC, p.product_id ASC;  -- Sort by created_date ascending (newer products last), and product_id for tie-breaking
+        WHERE p.status = 1  -- Include only products with status = 1
+        ORDER BY p.created_date ASC, p.product_id ASC;  -- Sort by created_date ascending and product_id for tie-breaking
     `;
   
     db.query(query, (err, results) => {
@@ -94,8 +96,8 @@ exports.addProduct = (req, res) => {
   
         res.status(200).send({ products });
     });
-  };
-  
+};
+
   
   exports.updateProduct = (req, res) => {
     const { 
