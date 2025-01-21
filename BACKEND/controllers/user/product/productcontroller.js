@@ -83,21 +83,22 @@ const db=require('../../../config/db');
     const query = `
         SELECT p.product_id, p.product_name, p.price, p.unit, p.quantity, p.exchangable, p.refundable, p.created_by, p.description, 
                p.image, p.image2, p.modified_by, p.modified_date, p.created_date, p.status,
-               c.category_name, s.sub_category_name
+               c.category_name, s.sub_category_name, p.sub_category_id, p.category_id
         FROM product p
         JOIN main_categor c ON p.category_id = c.category_id
         JOIN sub_categor s ON p.sub_category_id = s.sub_category_id
+        WHERE p.status = 1  -- Only include products with status = 1
         ORDER BY p.created_date ASC, p.product_id ASC;  -- Sort by created_date ascending (newer products last), and product_id for tie-breaking
     `;
-  
+
     db.query(query, (err, results) => {
         if (err) {
             return res.status(500).send({ message: 'Error fetching products', error: err.message });
         }
         if (results.length === 0) {
-            return res.status(404).send({ message: 'No products found' });
+            return res.status(404).send({ message: 'No products found with status = 1' });
         }
-  
+
         // Send all products as the response with the full URL for images
         const products = results.map(product => ({
             product_id: product.product_id,
@@ -113,17 +114,18 @@ const db=require('../../../config/db');
             image2: `/${product.image2}`,
             category_name: product.category_name,
             sub_category_name: product.sub_category_name,
-            sub_category_id:product.sub_category_id,
-            category_id:product.category_id,
+            sub_category_id: product.sub_category_id,
+            category_id: product.category_id,
             status: product.status,
             modified_by: product.modified_by,
             modified_date: product.modified_date,
             created_date: product.created_date
         }));
-  
+
         res.status(200).send({ products });
     });
-  };
+};
+
 
   exports.searchProducts = (req, res) => {
     const { searchQuery } = req.body;

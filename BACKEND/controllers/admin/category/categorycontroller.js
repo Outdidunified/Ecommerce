@@ -237,16 +237,20 @@ exports.getsubCategories = (req, res) => {
 };
 
 exports.getcategory = (req, res) => {
-  // Query to get categories from the database
-  const query = 'SELECT category_id, category_name FROM main_categor';
+  // Query to get categories with status = 1 from the database
+  const query = 'SELECT category_id, category_name FROM main_categor WHERE status = 1';
 
   connection.query(query, (err, results) => {
     if (err) {
       return res.status(500).json({ message: 'Error fetching categories', error: err.message });
     }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No categories found with status = 1' });
+    }
     res.status(200).json({ categories: results });
   });
 };
+
 
 
 exports.getsubcateg = (req, res) => {
@@ -259,11 +263,11 @@ exports.getsubcateg = (req, res) => {
 
   console.log(`Fetching subcategories for category_id: ${category_id}`);
 
-  // Query to get subcategories based on the provided category_id
+  // Query to get subcategories based on the provided category_id and status = 1
   const query = `
     SELECT sub_category_id, sub_category_name 
     FROM sub_categor
-    WHERE main_category_id = ?`;
+    WHERE main_category_id = ? AND status = 1`;
 
   connection.query(query, [category_id], (err, results) => {
     if (err) {
@@ -280,6 +284,7 @@ exports.getsubcateg = (req, res) => {
     });
   });
 };
+
 
 
 exports.getAllSubCategories = (req, res) => {
