@@ -7,7 +7,7 @@ import "react-custom-alert/dist/index.css";
 const Login = ({ handleLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
+    const [errorMessage, ] = useState('');
       const [passwordError, setPasswordError] = useState('');
       const [emailError, setEmailError] = useState('');
     const navigate = useNavigate();

@@ -99,67 +99,103 @@ exports.addProduct = (req, res) => {
 };
 
   
-  exports.updateProduct = (req, res) => {
-    const { 
-        product_id, 
-        product_name, 
-        price, 
-        unit, 
-        quantity, 
-        exchangable, 
-        refundable, 
-        modified_by, 
-        description
-    } = req.body;
-  
-    console.log('Request Body:', req.body);
-    console.log('Uploaded Files:', req.files);
-  
-    // Validate input fields
-    if (!product_id || !product_name || !price || !unit || !quantity || !modified_by) {
-        return res.status(400).send({ message: 'Product ID, product name, price, unit, quantity, and modified_by are required' });
+exports.updateProduct = (req, res) => {
+  const { 
+    product_id, 
+    product_name, 
+    price, 
+    unit, 
+    quantity, 
+    exchangable, 
+    refundable, 
+    modified_by, 
+    description 
+  } = req.body;
+
+  console.log('Request Body:', req.body);
+  console.log('Uploaded Files:', req.files);
+
+  // Validate input fields
+  if (!product_id || !product_name || !price || !unit || !quantity || !modified_by) {
+    return res.status(400).send({ message: 'Product ID, product name, price, unit, quantity, and modified_by are required' });
+  }
+
+  // Handle optional file updates
+  const image = req.files?.['image'] ? req.files['image'][0].path : null;
+  const image2 = req.files?.['image2'] ? req.files['image2'][0].path : null;
+
+  // Fetch current product details
+  const getProductQuery = 'SELECT * FROM product WHERE product_id = ?';
+  db.query(getProductQuery, [product_id], (err, productResults) => {
+    if (err) {
+      return res.status(500).send({ message: 'Error fetching product details', error: err.message });
     }
-  
-    // Handle optional file updates
-    const image = req.files?.['image'] ? req.files['image'][0].path : null;
-    const image2 = req.files?.['image2'] ? req.files['image2'][0].path : null;
-  
-    // Fetch current product details
-    const getProductQuery = 'SELECT * FROM product WHERE product_id = ?';
-    db.query(getProductQuery, [product_id], (err, productResults) => {
-        if (err) {
-            return res.status(500).send({ message: 'Error fetching product details', error: err.message });
-        }
-        if (productResults.length === 0) {
-            return res.status(404).send({ message: 'Product not found' });
-        }
-  
-        const currentProduct = productResults[0];
-  
-        // Use current images if no new images are uploaded
-        const finalImage = image || currentProduct.image;
-        const finalImage2 = image2 || currentProduct.image2;
-  
-        // Update the product
-        const query = `
-            UPDATE product 
-            SET product_name = ?, price = ?, unit = ?, quantity = ?, exchangable = ?, refundable = ?, 
-                modified_by = ?, description = ?, image = ?, image2 = ?
-            WHERE product_id = ?;
-        `;
-        db.query(query, [product_name, price, unit, quantity, exchangable, refundable, modified_by, description, finalImage, finalImage2, product_id], (err, result) => {
-            if (err) {
-                return res.status(500).send({ message: 'Error updating product', error: err.message });
-            }
-  
-            if (result.affectedRows === 0) {
-                return res.status(404).send({ message: 'Product not found' });
-            }
-  
-            res.status(200).send({ message: 'Product updated successfully' });
-        });
+    if (productResults.length === 0) {
+      return res.status(404).send({ message: 'Product not found' });
+    }
+
+    const currentProduct = productResults[0];
+
+    // Use current images if no new images are uploaded
+    const finalImage = image || currentProduct.image;
+    const finalImage2 = image2 || currentProduct.image2;
+
+    // Log the comparison data
+    console.log("Comparing Product Data:", {
+      currentProduct,
+      product_name,
+      price,
+      unit,
+      quantity,
+      exchangable,
+      refundable,
+      modified_by,
+      description,
+      finalImage,
+      finalImage2
     });
-  };
+
+    // Check for changes
+    const isNoChange = 
+      product_name === currentProduct.product_name &&
+      price == currentProduct.price &&
+      unit === currentProduct.unit &&
+      quantity == currentProduct.quantity &&
+      exchangable == currentProduct.exchangable &&
+      refundable == currentProduct.refundable &&
+      modified_by === currentProduct.modified_by &&
+      description === currentProduct.description &&
+      finalImage === currentProduct.image &&
+      finalImage2 === currentProduct.image2;
+
+    console.log("Is no change:", isNoChange);  // Log this
+
+    if (isNoChange) {
+      return res.status(400).send({ message: 'No changes happened' }); // 200 status with message
+    }
+
+    // Update the product if there are changes
+    const query = `
+      UPDATE product 
+      SET product_name = ?, price = ?, unit = ?, quantity = ?, exchangable = ?, refundable = ?, 
+          modified_by = ?, description = ?, image = ?, image2 = ?
+      WHERE product_id = ?;
+    `;
+    db.query(query, [product_name, price, unit, quantity, exchangable, refundable, modified_by, description, finalImage, finalImage2, product_id], (err, result) => {
+      if (err) {
+        return res.status(500).send({ message: 'Error updating product', error: err.message });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).send({ message: 'Product not found' });
+      }
+
+      res.status(200).send({ message: 'Product updated successfully' });
+    });
+  });
+};
+
+
   
   
   exports.ProductStatus = (req, res) => {

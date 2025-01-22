@@ -1,343 +1,391 @@
-import React, { useState, useEffect } from 'react';
-import 'remixicon/fonts/remixicon.css';
-import {  useNavigate } from 'react-router-dom'; // Import useNavigate
-
-import Sidebar from '../../Components/Sidebar/Sidebar';
-import Header from '../../Components/Header/Header';
-import Footer from '../../Components/Footer/footer';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-custom-alert';
-import 'react-custom-alert/dist/index.css';
+import React, { useState, useEffect } from "react";
+import "remixicon/fonts/remixicon.css";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../../Components/Sidebar/Sidebar";
+import Header from "../../Components/Header/Header";
+import Footer from "../../Components/Footer/footer";
+import axios from "axios";
+import { ToastContainer, toast } from "react-custom-alert";
+import "react-custom-alert/dist/index.css";
 
 const AddUser = ({ handleLogout, adminData }) => {
-  const navigate = useNavigate(); // Initialize useNavigate
-  const token = sessionStorage.getItem("authToken"); // Retrieve token from sessionStorage
-  
+  const navigate = useNavigate();
+  const token = sessionStorage.getItem("authToken");
+
   const [formData, setFormData] = useState({
-    username: '',
-    email_id: '',
-    password: '',
-    user_type: '',  // User Type (Role)
-    role_id: '',    // Role ID
-    address: '',
-    pincode: '',
-    phone: '',      // Phone Number
-    country: '',    // Country
-    state: '',      // State
+    username: "",
+    email_id: "",
+    password: "",
+    user_type: "",
+    role_id: "",
+    address: "",
+    pincode: "",
+    phone: "",
+    country: "",
+    state: "",
     created_by: adminData.admin_name,
   });
 
-  const [roles, setRoles] = useState([]); // State to store roles data
-  const [, setLoading] = useState(true); // State to manage loading
+  const [roles, setRoles] = useState([]);
+  const [errors, setErrors] = useState({});
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+  const usernameRegex = /^[a-zA-Z][a-zA-Z0-9]{2,14}$/;
+  const emailRegex =
+    /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
+  const digitOnlyRegex = /^\d*$/;
 
   useEffect(() => {
-    // Fetch roles from the API on component mount
-    axios.get('/roles')
+    axios
+      .get("/roles")
       .then((response) => {
-        setRoles(response.data); // Set the role data to state
-        setLoading(false); // Set loading to false once data is fetched
+        setRoles(response.data);
       })
       .catch((error) => {
-        console.error('Error fetching roles:', error);
-        setLoading(false);
+        console.error("Error fetching roles:", error);
       });
   }, []);
+
+  const validateField = (name, value) => {
+    let error = "";
+    value = String(value);  // Ensure that value is a string before calling trim()
+    
+    switch (name) {
+      case "username":
+        if (!value.trim()) {
+          error = "Username is required.";
+        } else if (!usernameRegex.test(value)) {
+          error =
+            "Username must start with a letter and be 3-15 characters long.";
+        }
+        break;
+      case "email_id":
+        if (!value.trim()) {
+          error = "Email is required.";
+        } else if (!emailRegex.test(value)) {
+          error = "Invalid email format.";
+        }
+        break;
+      case "password":
+        if (!value.trim()) {
+          error = "Password is required.";
+        } else if (!passwordRegex.test(value)) {
+          error =
+            "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.";
+        }
+        break;
+      case "phone":
+        if (!value.trim()) {
+          error = "Phone number is required.";
+        } else if (!digitOnlyRegex.test(value) || value.length !== 10) {
+          error = "Phone number must be exactly 10 digits.";
+        }
+        break;
+      case "pincode":
+        if (!value.trim()) {
+          error = "Pincode is required.";
+        } else if (!digitOnlyRegex.test(value) || value.length < 6) {
+          error = "Pincode must be at least 6 digits.";
+        }
+        break;
+      case "address":
+        if (!value.trim()) {
+          error = "Address is required.";
+        }
+        break;
+      case "country":
+        if (!value.trim()) {
+          error = "Country is required.";
+        }
+        break;
+      case "state":
+        if (!value.trim()) {
+          error = "State is required.";
+        }
+        break;
+      default:
+        if (!value.trim()) {
+          error = `${name.replace("_", " ")} is required.`;
+        }
+    }
+    return error;
+  };
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // If the user selects a role, update both role_name and role_id
-    if (name === "user_type") {
-      const selectedRole = roles.find(role => role.role_name === value);
-      setFormData({
-        ...formData,
-        user_type: value,
-        role_id: selectedRole ? selectedRole.role_id : ''
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+    // Handle phone and pincode validation
+    if ((name === "phone" || name === "pincode") && !digitOnlyRegex.test(value)) {
+      return; // Prevent non-digit input for phone and pincode
     }
+
+    // If the field is user_type, update role_id based on selected user type
+    if (name === "user_type") {
+      const selectedRole = roles.find((role) => role.role_name === value);
+      setFormData((prev) => ({
+        ...prev,
+        user_type: value,
+        role_id: selectedRole ? selectedRole.role_id : "",
+      }));
+    } else {
+      // Otherwise, just update formData for other fields
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+
+    // Update errors state for validation
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-  
-    // Basic Validation: Check if any field is empty
-    const { username, email_id, password, user_type, phone, country, state, address, pincode, role_id } = formData;
-  
-    if (!username || !email_id || !password || !user_type || !phone || !country || !state || !address || !pincode || !role_id) {
-      toast.error('All fields are required!');
+
+    const validationErrors = {};
+    Object.keys(formData).forEach((field) => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        validationErrors[field] = error;
+      }
+    });
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
-  
-    try {
-      // Add token in the Authorization header
-      const response = await axios.post('/admin/adduser', formData, {
-        headers: {
-          'Authorization': `Bearer ${token}` // Passing token in header
-        }
-      });
-  
-      // Check if response status is 200 (OK) to show success or failure message
-      if (response.status === 200) {
-        toast.success(response.data.message || 'User added successfully');
+
+    axios
+      .post("/admin/adduser", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(() => {
+        toast.success("User added successfully!");
+        
+        // Wait for 2 seconds before navigating
         setTimeout(() => {
-          navigate('/allusers'); // Navigate to /allusers after 2 seconds
+          navigate("/allusers");
         }, 2000);
-      } else {
-        toast.error(response.data.message || 'Failed to add user');
-      }
-    } catch (error) {
-      console.error('Error adding user:', error);
-  
-      // Handle error based on status code or fallback message
-      const errorMessage = error.response?.data?.message || 'Failed to add user';
-      toast.error(errorMessage);
-    }
+      })
+      .catch((error) => {
+        console.error("Error adding user:", error);
+        toast.error("Failed to add user.");
+      });
   };
-  
-  
 
   return (
     <div>
-      {/* page-wrapper Start */}
       <div className="page-wrapper compact-wrapper" id="pageWrapper">
-        {/* Page Header Start */}
         <Header handleLogout={handleLogout} adminData={adminData} />
-        {/* Page Header Ends */}
-
-        {/* Page Body Start */}
         <div className="page-body-wrapper">
-          {/* Page Sidebar Start */}
           <Sidebar />
-          {/* Page Sidebar Ends */}
-
-          {/* Container-fluid starts */}
           <div className="page-body">
             <div className="container-fluid">
               <div className="row">
                 <div className="col-12">
-                  <div className="row">
-                    <div className="col-sm-8 m-auto">
-                      <div className="card">
-                        <div className="card-body">
-                          <div className="title-header option-title">
-                            <h5>Add New User</h5>
+                  <div className="card">
+                    <div className="card-body">
+                      <h5 className="card-title">Add New User</h5>
+                      <form className="theme-form" onSubmit={handleSubmit}>
+                        <div className="row">
+                          {/* Username */}
+                          <div className="col-md-6">
+                            <label>Username</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="username"
+                              value={formData.username}
+                              onChange={handleChange}
+                              required
+                            />
+                            {errors.username && (
+                              <small className="text-danger">
+                                {errors.username}
+                              </small>
+                            )}
                           </div>
 
-                          <div className="tab-content" id="pills-tabContent">
-                            <div className="tab-pane fade show active" id="pills-home" role="tabpanel">
-                              <form className="theme-form theme-form-2 mega-form" onSubmit={handleSubmit}>
-                                <div className="card-header-1">
-                                  <h5>User Information</h5>
-                                </div>
+                          {/* Email */}
+                          <div className="col-md-6">
+                            <label>Email</label>
+                            <input
+                              type="email"
+                              className="form-control"
+                              name="email_id"
+                              value={formData.email_id}
+                              onChange={handleChange}
+                              required
+                            />
+                            {errors.email_id && (
+                              <small className="text-danger">
+                                {errors.email_id}
+                              </small>
+                            )}
+                          </div>
 
-                                <div className="row">
-                                  {/* Username */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="form-label-title col-lg-2 col-md-3 mb-0">Username</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="username"
-                                        placeholder="Enter username"
-                                        value={formData.username}
-                                        onChange={handleChange}
-                                        required
-                                        maxLength="15"
-                                        pattern="^[a-zA-Z0-9]+$"
-                                        title="Username must be alphanumeric and up to 15 characters long"
-                                      />
-                                    </div>
-                                  </div>
+                          {/* Password */}
+                          <div className="col-md-6">
+                            <label>Password</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="password"
+                              value={formData.password}
+                              onChange={handleChange}
+                              required
+                            />
+                            {errors.password && (
+                              <small className="text-danger">
+                                {errors.password}
+                              </small>
+                            )}
+                          </div>
 
-                                  {/* Email */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="col-lg-2 col-md-3 col-form-label form-label-title">Email Address</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <input
-                                        className="form-control"
-                                        type="email"
-                                        name="email_id" 
-                                        placeholder="Enter email address"
-                                        value={formData.email_id}
-                                        onChange={handleChange}
-                                        required
-                                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                                        title="Enter a valid email address"
-                                      />
-                                    </div>
-                                  </div>
+                          {/* User Type (Role) */}
+                          <div className="col-md-6">
+                            <label>User Type</label>
+                            <select
+                              className="form-control"
+                              name="user_type"
+                              value={formData.user_type}
+                              onChange={handleChange}
+                              required
+                            >
+                              <option value="">Select User Type</option>
+                              {roles.map((role) => (
+                                <option
+                                  key={role.role_id}
+                                  value={role.role_name}
+                                >
+                                  {role.role_name}
+                                </option>
+                              ))}
+                            </select>
+                            {errors.user_type && (
+                              <small className="text-danger">
+                                {errors.user_type}
+                              </small>
+                            )}
+                          </div>
 
-                                  {/* Password */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="col-lg-2 col-md-3 col-form-label form-label-title">Password</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <input
-                                        className="form-control"
-                                        type="password"
-                                        name="password"
-                                        placeholder="Enter password"
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        required
-                                        minLength="6"
-                                        pattern="^[A-Za-z\d@$!%*?&]{6,}$"
-                                        title="Password must be at least 6 characters long and contain only letters, digits, and special characters (no other characters allowed)"
-                                      />
-                                    </div>
-                                  </div>
+                          {/* Address */}
+                          <div className="col-md-6">
+                            <label>Address</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="address"
+                              value={formData.address}
+                              onChange={handleChange}
+                              required
+                            />
+                            {errors.address && (
+                              <small className="text-danger">
+                                {errors.address}
+                              </small>
+                            )}
+                          </div>
 
-                                  {/* User Type (Role) */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="form-label-title col-lg-2 col-md-3 mb-0">User Type</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <select
-                                        className="form-control"
-                                        name="user_type"
-                                        value={formData.user_type}
-                                        onChange={handleChange}
-                                        required
-                                      >
-                                        <option value="">Select UserType</option>
-                                        {roles.map((role) => (
-                                          <option key={role.role_id} value={role.role_name}>
-                                            {role.role_name}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-{/* Phone */}
-<div className="mb-4 row align-items-center">
-  <label className="form-label-title col-lg-2 col-md-3 mb-0">Phone</label>
-  <div className="col-md-9 col-lg-10">
-    <input
-      className="form-control"
-      type="tel"
-      name="phone"
-      placeholder="Enter phone number"
-      value={formData.phone}
-      onChange={handleChange}
-      onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')} // Restrict to numbers only
-      pattern="^[0-9]{10}$"
-      maxLength="10"
-      required
-    />
-    {!/^[0-9]{10}$/.test(formData.phone) && formData.phone && (
-      <small className="text-danger">Phone number must be 10 digits.</small>
-    )}
-  </div>
-</div>
+                          {/* Pincode */}
+                          <div className="col-md-6">
+                            <label>Pincode</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="pincode"
+                              value={formData.pincode}
+                              onChange={handleChange}
+                              maxLength="6"
+                              required
+                            />
+                            {errors.pincode && (
+                              <small className="text-danger">
+                                {errors.pincode}
+                              </small>
+                            )}
+                          </div>
 
+                          {/* Phone */}
+                          <div className="col-md-6">
+                            <label>Phone</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleChange}
+                              maxLength="10"
+                              required
+                            />
+                            {errors.phone && (
+                              <small className="text-danger">
+                                {errors.phone}
+                              </small>
+                            )}
+                          </div>
 
-                                  {/* Country */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="form-label-title col-lg-2 col-md-3 mb-0">Country</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="country"
-                                        placeholder="Enter country"
-                                        value={formData.country}
-                                        onChange={handleChange}
-                                        required
-                                      />
-                                    </div>
-                                  </div>
+                          {/* Country */}
+                          <div className="col-md-6">
+                            <label>Country</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="country"
+                              value={formData.country}
+                              onChange={handleChange}
+                              required
+                            />
+                            {errors.country && (
+                              <small className="text-danger">
+                                {errors.country}
+                              </small>
+                            )}
+                          </div>
 
-                                  {/* State */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="form-label-title col-lg-2 col-md-3 mb-0">State</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="state"
-                                        placeholder="Enter state"
-                                        value={formData.state}
-                                        onChange={handleChange}
-                                        required
-                                      />
-                                    </div>
-                                  </div>
+                          {/* State */}
+                          <div className="col-md-6">
+                            <label>State</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="state"
+                              value={formData.state}
+                              onChange={handleChange}
+                              required
+                            />
+                            {errors.state && (
+                              <small className="text-danger">
+                                {errors.state}
+                              </small>
+                            )}
+                          </div>
 
-                                  {/* Address */}
-                                  <div className="mb-4 row align-items-center">
-                                    <label className="form-label-title col-lg-2 col-md-3 mb-0">Address</label>
-                                    <div className="col-md-9 col-lg-10">
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="address"
-                                        placeholder="Enter address"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        required
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Pincode */}
-                            
-<div className="mb-4 row align-items-center">
-  <label className="form-label-title col-lg-2 col-md-3 mb-0">Pincode</label>
-  <div className="col-md-9 col-lg-10">
-    <input
-      className="form-control"
-      type="text"
-      name="pincode"
-      placeholder="Enter pincode"
-      value={formData.pincode}
-      onChange={handleChange}
-      onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')} // Restrict to numbers only
-      pattern="^[0-9]{6}$"
-      maxLength="6"
-      required
-    />
-    {!/^[0-9]{6}$/.test(formData.pincode) && formData.pincode && (
-      <small className="text-danger">Pincode must be a 6-digit number.</small>
-    )}
-  </div>
-</div>
-
-<div className="row justify-content-center mt-4">
-                                  <div className="col-auto">
-                                    <button type="submit" className="btn btn-primary btn-lg">
-                                      Submit
-                                    </button>
-                                  </div>
-                                </div>
-                                </div>
-                              </form>
-                            </div>
+                          {/* Submit */}
+                          <div className="col-12 mt-4 d-flex justify-content-center">
+                            <button type="submit" className="btn btn-primary">
+                              Add User
+                            </button>
                           </div>
                         </div>
-                      </div>
+                      </form>
+                      <ToastContainer />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Page Footer */}
           <Footer />
         </div>
       </div>
-          <ToastContainer />
     </div>
   );
 };
 
 export default AddUser;
-
-
-
-
-

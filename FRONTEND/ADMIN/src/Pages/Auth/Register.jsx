@@ -14,7 +14,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [success, ] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [emailError, setEmailError] = useState('');

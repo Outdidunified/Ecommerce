@@ -1,7 +1,6 @@
 
 const db=require('../../../config/db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const {EmailConfig}=require('../auth/Email');
 const crypto = require('crypto');
 exports.signup = (req, res) => {
@@ -176,7 +175,7 @@ exports.update = (req, res) => {
 
       // If no update is required, skip the database update
       if (!updateRequired) {
-        return res.status(400).json({ message: 'No update happened, data is already up to date' });
+        return res.status(400).json({ message: 'No update happened' });
       }
 
       // Update the fields including the new pincode, country, and state
