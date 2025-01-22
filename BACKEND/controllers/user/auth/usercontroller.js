@@ -1,7 +1,6 @@
 
 const db=require('../../../config/db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const {EmailConfig}=require('../auth/Email');
 const crypto = require('crypto');
 exports.signup = (req, res) => {
