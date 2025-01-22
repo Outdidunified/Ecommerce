@@ -102,7 +102,7 @@ exports.updateRoleName = (req, res) => {
 
     // If the new role name is the same as the current one, send a message saying no update happened
     if (currentRoleName === role_name) {
-      return res.status(200).json({ message: 'No changes happened' });
+      return res.status(400).json({ message: 'No changes happened' });
     }
 
     // Update the role_name, modified_by, and modified_date for the given role_id

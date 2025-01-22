@@ -171,7 +171,7 @@ exports.updateProduct = (req, res) => {
     console.log("Is no change:", isNoChange);  // Log this
 
     if (isNoChange) {
-      return res.status(200).send({ message: 'No changes happened' }); // 200 status with message
+      return res.status(400).send({ message: 'No changes happened' }); // 200 status with message
     }
 
     // Update the product if there are changes
