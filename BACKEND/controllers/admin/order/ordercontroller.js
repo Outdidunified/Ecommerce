@@ -178,9 +178,10 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     }
 
     // Check if there are no changes
-    if (status === currentStatus && formattedDate === currentExpectedDeliveryDate) {
+    if (status === currentStatus) {
       return res.status(400).json({ message: 'No changes happened' });
     }
+    
 
     // Update query
     const updateQuery = `

@@ -154,7 +154,7 @@ exports.updateCategory = (req, res) => {
 
     // Check if both category_name and modified_by are unchanged
     if (existingCategory.category_name === category_name && existingCategory.modified_by === modified_by) {
-      return res.status(200).send({ message: 'No changes happened' });
+      return res.status(400).send({ message: 'No changes happened' });
     }
 
     // Proceed with the update
