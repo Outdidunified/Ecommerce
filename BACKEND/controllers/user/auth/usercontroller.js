@@ -175,7 +175,7 @@ exports.update = (req, res) => {
 
       // If no update is required, skip the database update
       if (!updateRequired) {
-        return res.status(400).json({ message: 'No update happened, data is already up to date' });
+        return res.status(200).json({ message: 'No update happened' });
       }
 
       // Update the fields including the new pincode, country, and state

@@ -151,7 +151,7 @@ exports.updateSettings = (req, res) => {
 
       // If no update is required, skip the database update
       if (!updateRequired) {
-        return res.status(400).json({ message: 'No update happened, data is already up to date' });
+        return res.status(200).json({ message: 'No update happened' });
       }
 
       // Update the username, password, and modified_by
@@ -166,7 +166,7 @@ exports.updateSettings = (req, res) => {
 
         // Check if any rows were affected
         if (result.affectedRows === 0) {
-          return res.status(200).json({ message: 'No update happened, database values remain the same' });
+          return res.status(200).json({ message: 'No update happened' });
         }
 
         return res.status(200).json({
@@ -337,7 +337,7 @@ exports.updateUser = (req, res) => {
       }
 
       if (!changesMade) {
-        return res.status(400).json({ message: 'No changes made to the user' });
+        return res.status(200).json({ message: 'No changes happened' });
       }
 
       // Update query for the user

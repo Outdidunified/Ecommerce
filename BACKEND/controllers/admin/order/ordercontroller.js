@@ -148,7 +148,7 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 
   // Query to check the order status and payment status
   const checkStatusQuery = `
-    SELECT o.status, p.payment_status 
+    SELECT o.status, o.expected_delivery_date, p.payment_status 
     FROM orders o
     LEFT JOIN payments p ON o.order_id = p.order_id
     WHERE o.order_id = ?;
@@ -164,6 +164,7 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     }
 
     const currentStatus = result[0].status;
+    const currentExpectedDeliveryDate = result[0].expected_delivery_date;
     const paymentStatus = result[0].payment_status;
 
     // Check if payment is completed
@@ -174,6 +175,11 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     // Prevent updates if the order is already delivered
     if (currentStatus === 'Delivered') {
       return res.status(400).json({ error: 'Order cannot be updated after being delivered.' });
+    }
+
+    // Check if there are no changes
+    if (status === currentStatus && formattedDate === currentExpectedDeliveryDate) {
+      return res.status(200).json({ message: 'No changes happened' });
     }
 
     // Update query
@@ -201,6 +207,7 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     });
   });
 };
+
 
 
 

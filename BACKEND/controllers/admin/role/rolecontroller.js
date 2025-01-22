@@ -73,59 +73,59 @@ exports.getAllRoles = (req, res) => {
 
 // Function to update role_name
 exports.updateRoleName = (req, res) => {
-    const { role_id, role_name, modified_by } = req.body;
-  
-    // Validation for required fields
-    if (!role_id || !role_name || !modified_by) {
-      return res.status(400).json({
-        message: 'role_id, role_name, and modified_by are required for updating.',
-      });
+  const { role_id, role_name, modified_by } = req.body;
+
+  // Validation for required fields
+  if (!role_id || !role_name || !modified_by) {
+    return res.status(400).json({
+      message: 'role_id, role_name, and modified_by are required for updating.',
+    });
+  }
+
+  // Check the current role name to compare with the new one
+  const checkCurrentRoleQuery = `
+    SELECT role_name 
+    FROM roles 
+    WHERE role_id = ?
+  `;
+
+  db.query(checkCurrentRoleQuery, [role_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
     }
-  
-    // Check the current role name to compare with the new one
-    const checkCurrentRoleQuery = `
-      SELECT role_name 
-      FROM roles 
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Role ID not found.' });
+    }
+
+    const currentRoleName = result[0].role_name;
+
+    // If the new role name is the same as the current one, send a message saying no update happened
+    if (currentRoleName === role_name) {
+      return res.status(200).json({ message: 'No changes happened' });
+    }
+
+    // Update the role_name, modified_by, and modified_date for the given role_id
+    const updateRoleQuery = `
+      UPDATE roles 
+      SET role_name = ?, modified_by = ?, modified_date = CURRENT_TIMESTAMP
       WHERE role_id = ?
     `;
-  
-    db.query(checkCurrentRoleQuery, [role_id], (err, result) => {
+
+    db.query(updateRoleQuery, [role_name, modified_by, role_id], (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-  
-      if (result.length === 0) {
+
+      if (result.affectedRows === 0) {
         return res.status(404).json({ message: 'Role ID not found.' });
       }
-  
-      const currentRoleName = result[0].role_name;
-  
-      // If the new role name is the same as the current one, send a message saying no update happened
-      if (currentRoleName === role_name) {
-        return res.status(400).json({ message: 'No updates were made. The role name is the same.' });
-      }
-  
-      // Update the role_name, modified_by, and modified_date for the given role_id
-      const updateRoleQuery = `
-        UPDATE roles 
-        SET role_name = ?, modified_by = ?, modified_date = CURRENT_TIMESTAMP
-        WHERE role_id = ?
-      `;
-  
-      db.query(updateRoleQuery, [role_name, modified_by, role_id], (err, result) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        }
-  
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ message: 'Role ID not found.' });
-        }
-  
-        res.status(200).json({ message: 'Role name updated successfully.' });
-      });
+
+      res.status(200).json({ message: 'Role name updated successfully.' });
     });
-  };
-  
+  });
+};
+
   
   
 

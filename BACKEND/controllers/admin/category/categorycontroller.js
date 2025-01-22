@@ -131,9 +131,8 @@ exports.getAllCategories = (req, res) => {
 
 
 
-// Function to update a category
 exports.updateCategory = (req, res) => {
-  const { category_id, category_name, modified_by } = req.body;  // Extract category_id, category_name, and modified_by from request body
+  const { category_id, category_name, modified_by } = req.body;
 
   // Validate input fields
   if (!category_id || !category_name || !modified_by) {
@@ -153,9 +152,9 @@ exports.updateCategory = (req, res) => {
 
     const existingCategory = results[0];
 
-    // Check if the values are the same, if so, no need to update
+    // Check if both category_name and modified_by are unchanged
     if (existingCategory.category_name === category_name && existingCategory.modified_by === modified_by) {
-      return res.status(400).send({ message: 'No changes detected' });
+      return res.status(200).send({ message: 'No changes happened' });
     }
 
     // Proceed with the update
@@ -165,14 +164,16 @@ exports.updateCategory = (req, res) => {
         return res.status(500).send({ message: 'Error updating category', error: err.message });
       }
 
+      // Check if any rows were actually affected
       if (result.affectedRows === 0) {
-        return res.status(404).send({ message: 'Category not found' });
+        return res.status(200).send({ message: 'No changes happened' });
       }
 
       res.status(200).send({ message: 'Category updated successfully' });
     });
   });
 };
+
 
 
 // Function to update a subcategory
@@ -199,7 +200,7 @@ exports.updateSubCategory = (req, res) => {
 
     // Check if the values are the same, if so, no need to update
     if (existingSubCategory.sub_category_name === sub_category_name && existingSubCategory.modified_by === modified_by) {
-      return res.status(400).send({ message: 'No changes detected' });
+      return res.status(200).send({ message: 'No changes happened' });
     }
 
     // Proceed with the update (Only update sub_category_name and modified_by, not the status)
@@ -359,7 +360,7 @@ exports.deleteCategory = (req, res) => {
 
     // If the status is the same, no changes happened
     if (currentStatus === status) {
-      return res.status(400).send({ message: 'No changes made. The status is already the same.' });
+      return res.status(200).send({ message: 'No changes happened' });
     }
 
     // If status needs to be updated, proceed with the update
@@ -405,7 +406,7 @@ exports.deleteSubCategory = (req, res) => {
 
     // If the status is the same, no changes happened
     if (currentStatus === status) {
-      return res.status(400).send({ message: 'No changes made. The status is already the same.' });
+      return res.status(200).send({ message: 'No changes happened' });
     }
 
     // If status needs to be updated, proceed with the update
