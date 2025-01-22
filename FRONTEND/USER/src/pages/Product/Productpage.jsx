@@ -170,7 +170,7 @@ const Productpage = ({ handleLogout, userdata }) => {
                            </div>
                            <div className="product-footer">
                              <div className="product-detail">
-                               <span className="span-name">{product.unit}</span>
+                             
                                <Link to="/viewproducts" state={{ product }}>
                                  <h5 className="name">{product.product_name}</h5>
                                </Link>

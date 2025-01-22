@@ -107,16 +107,21 @@ const [userToEdit, setuserToEdit] = useState(null);
       phone: userToEdit.phone,
       country: userToEdit.country,
       state: userToEdit.state,
+
       modified_by: adminData.admin_name, // Ensure this value is being set properly
     };
-  
     try {
       const response = await axios.put(
         '/admin/updateuser', 
         updatedUserData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache',  // Prevent caching issues
+          } 
+        }
       );
-  
+    
       if (response.status === 200) {
         toast.success("User updated successfully!");
         setUsers(prevUsers => 
@@ -125,13 +130,27 @@ const [userToEdit, setuserToEdit] = useState(null);
           )
         );
         closeUserEditModal();
+      } else if (response.status === 400) {
+        // Handle 400 status and display the error message from the response
+        toast.error(response.data.message || "An error occurred.");
       } else {
-        toast.error("Failed to update user.");
+        toast.error("Unexpected error: " + (response.data.message || "Something went wrong."));
       }
     } catch (error) {
       console.error("Error updating user:", error);
-      toast.error("An error occurred while updating the user.");
+      if (error.response) {
+        console.error("Response error details:", error.response.data);
+        toast.error(error.response.data.message || "An error occurred while updating the user.");
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        toast.error("No response from the server.");
+      } else {
+        console.error("Error setting up the request:", error.message);
+        toast.error("An error occurred while updating the user.");
+      }
     }
+    
+    
   };
   
   
@@ -554,25 +573,7 @@ const [userToEdit, setuserToEdit] = useState(null);
               )}
             </div>
 
-            {/* Active Status Field */}
-            <div className="mb-4 row align-items-center">
-              <label className="col-sm-3 col-form-label form-label-title">Active</label>
-              <div className="col-sm-9 mt-3">
-                <select
-                  className="form-control"
-                  value={userToEdit.active === 1 ? "Yes" : "No"}
-                  onChange={(e) =>
-                    setuserToEdit({
-                      ...userToEdit,
-                      active: e.target.value === "Yes" ? 1 : 0,
-                    })
-                  }
-                >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-            </div>
+         
 
           </div>
 

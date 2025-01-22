@@ -265,9 +265,9 @@ const Categorypage = ({ handleLogout, userdata }) => {
                           <h6 className="unit">{product.unit}</h6>
                           <h5 className="price">
                             <span className="theme-color">
-                              ${product.price}
+                              Rs.{product.price}
                             </span>{" "}
-                            <del>${product.price * 1.5}</del>
+                           
                           </h5>
                           <div className="add-to-cart-box bg-white">
                             <button className="btn btn-add-cart addcart-button"

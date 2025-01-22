@@ -179,7 +179,7 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 
     // Check if there are no changes
     if (status === currentStatus) {
-      return res.status(400).json({ message: 'No changes happened' });
+      return res.status(400).json({ error: 'No changes happened' });
     }
     
 

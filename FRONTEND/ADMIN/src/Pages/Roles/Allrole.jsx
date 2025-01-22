@@ -79,6 +79,7 @@ const Allrole = ({ handleLogout, adminData }) => {
           modified_by: adminData.admin_name,
         })
         .then((response) => {
+          // Handle the response status
           if (response.status === 200) {
             toast.success("Role updated successfully!"); // Success toast
             // Re-fetch roles after updating the role to ensure the list is updated
@@ -89,25 +90,38 @@ const Allrole = ({ handleLogout, adminData }) => {
               })
               .catch((err) => {
                 console.error("Error fetching roles after updating:", err);
-                toast.error(
-                  "Failed to fetch updated roles list. Please refresh."
-                );
+                toast.error("Failed to fetch updated roles list. Please refresh.");
               });
             setShowEditModal(false); // Close the edit modal
+          } else if (response.status === 400) {
+            // Handle 400 status in the then block
+            toast.error(response.data.message || "Failed to update role. Please try again.");
           } else {
-            toast.error("Failed to update role. Please try again."); // Error toast for unexpected status
+            toast.error("Unexpected error: " + (response.data.message || "Something went wrong."));
           }
         })
         .catch((error) => {
-          console.error("Error updating role:", error);
-          toast.error(
-            "An error occurred while updating the role. Please try again."
-          );
+          // This block will now only handle network errors or unexpected issues
+          if (error.response) {
+            // This handles 4xx, 5xx errors that are routed to the catch block
+            console.error("Error response:", error.response);
+            toast.error(error.response.data.message || "An error occurred while updating the role.");
+          } else if (error.request) {
+            // This handles when no response is received from the server
+            console.error("No response received:", error.request);
+            toast.error("No response from the server.");
+          } else {
+            // This handles other errors, like request setup issues
+            console.error("Error setting up the request:", error.message);
+            toast.error("An error occurred while updating the role.");
+          }
         });
     } else {
       toast.warning("Please enter a role name"); // Warning toast for empty input
     }
   };
+  
+  
 
   const handleToggleRoleStatus = (role) => {
     const statusToUpdate = role.status === 1 ? 0 : 1; // Toggle between active (1) and inactive (0)

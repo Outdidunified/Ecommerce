@@ -13,10 +13,10 @@ import { format } from "date-fns";
 
 const Orderlist = ({ handleLogout, adminData }) => {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showOrderViewModal, setShowOrderViewModal] = useState(false);
+  const [, setShowOrderViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [orderStatus, setOrderStatus] = useState("");
   const [estimatedDelivery, setEstimatedDelivery] = useState(null); // Initialize with null
@@ -27,9 +27,6 @@ const Orderlist = ({ handleLogout, adminData }) => {
     navigate(`/orderdetail`, { state: { order } }); // Pass the entire order data in state
   };
 
-  const handletracking = (order) => {
-    navigate(`/ordertracking`, { state: { order } }); // Pass the entire order data in state
-  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -99,12 +96,17 @@ const Orderlist = ({ handleLogout, adminData }) => {
   
     try {
       const response = await axios.put("/orders/updatestatus", requestData);
+  
       if (response.status === 200) {
         toast.success("Updated successfully");
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.order_id === selectedOrder.order_id
-              ? { ...order, order_status: orderStatus, expected_delivery_date: formattedDate }
+              ? {
+                  ...order,
+                  order_status: orderStatus,
+                  expected_delivery_date: formattedDate,
+                }
               : order
           )
         );
@@ -113,8 +115,14 @@ const Orderlist = ({ handleLogout, adminData }) => {
         toast.error("Error in updating order.");
       }
     } catch (error) {
-      console.error("Error updating order status:", error);
-      toast.error("Error in updating order.");
+      if (error.response && error.response.status === 400) {
+        // Extract the error message from the backend response
+        const backendMessage = error.response.data.error || "Invalid request.";
+        toast.error(backendMessage);
+      } else {
+        console.error("Error updating order status:", error);
+        toast.error("Error in updating order.");
+      }
     }
   };
   
@@ -318,6 +326,8 @@ const Orderlist = ({ handleLogout, adminData }) => {
   dateFormat="dd/MM/yyyy"
   className={`form-control ${isValidDate ? "" : "is-invalid"}`}
   placeholderText="Select a delivery date"
+  required
+  autoComplete="off"
 />
 
                     {!isValidDate && (
