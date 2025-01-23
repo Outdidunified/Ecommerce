@@ -27,7 +27,6 @@ const Orderlist = ({ handleLogout, adminData }) => {
     navigate(`/orderdetail`, { state: { order } }); // Pass the entire order data in state
   };
 
-
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -48,7 +47,6 @@ const Orderlist = ({ handleLogout, adminData }) => {
     fetchOrders();
   }, []);
 
-
   const handleCloseModal = () => {
     setShowOrderViewModal(false);
     setShowEditModal(false);
@@ -61,7 +59,7 @@ const Orderlist = ({ handleLogout, adminData }) => {
     const parsedDate = order.expected_delivery_date
       ? new Date(order.expected_delivery_date.split("/").reverse().join("-"))
       : null;
-  
+
     setSelectedOrder(order);
     setOrderStatus(order.order_status);
     setEstimatedDelivery(parsedDate); // Set the parsed date or null
@@ -75,28 +73,28 @@ const Orderlist = ({ handleLogout, adminData }) => {
       setIsValidDate(false);
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!isValidDate || !orderStatus) {
       toast.error("Please enter valid details.");
       return;
     }
-  
+
     // Format the date to dd/MM/yyyy
     const formattedDate = format(estimatedDelivery, "dd/MM/yyyy");
-  
+
     const requestData = {
       status: orderStatus,
       order_id: selectedOrder.order_id,
       expected_delivery_date: formattedDate,
       modified_by: adminData.admin_name,
     };
-  
+
     try {
       const response = await axios.put("/orders/updatestatus", requestData);
-  
+
       if (response.status === 200) {
         toast.success("Updated successfully");
         setOrders((prevOrders) =>
@@ -125,7 +123,7 @@ const Orderlist = ({ handleLogout, adminData }) => {
       }
     }
   };
-  
+
   return (
     <div>
       {/* Page wrapper starts */}
@@ -227,8 +225,8 @@ const Orderlist = ({ handleLogout, adminData }) => {
                                     <ul>
                                       <li>
                                         <button
-                                          onClick={() =>
-                                            handleRowClick(order) // Pass the order to the handler
+                                          onClick={
+                                            () => handleRowClick(order) // Pass the order to the handler
                                           }
                                           className="btn btn-link"
                                           aria-label="View order"
@@ -258,18 +256,16 @@ const Orderlist = ({ handleLogout, adminData }) => {
                                         </button>
                                       </li>
                                       <li>
-                                      <Link
-                                        className="btn btn-sm btn-solid text-white"
- to="/ordertracking"
- state={{
-  order
- }}
->
-  Tracking
-</Link>
-
-            </li>
-
+                                        <Link
+                                          className="btn btn-sm btn-solid text-white"
+                                          to="/ordertracking"
+                                          state={{
+                                            order,
+                                          }}
+                                        >
+                                          Tracking
+                                        </Link>
+                                      </li>
                                     </ul>
                                   </td>
                                 </tr>
@@ -299,13 +295,14 @@ const Orderlist = ({ handleLogout, adminData }) => {
           }}
           onClick={handleCloseModal}
         >
-          <div
-            className="modal-dialog"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               <div className="modal-header">
-                <button type="button" className="close" onClick={handleCloseModal}>
+                <button
+                  type="button"
+                  className="close"
+                  onClick={handleCloseModal}
+                >
                   <span>&times;</span>
                 </button>
                 <h4 className="modal-title">Edit Order</h4>
@@ -320,15 +317,17 @@ const Orderlist = ({ handleLogout, adminData }) => {
                       Estimated Delivery Date:
                     </label>
                     <DatePicker
-  id="estimated-delivery"
-  selected={estimatedDelivery || null}  // Default to null if the date is invalid
-  onChange={handleDateChange}
-  dateFormat="dd/MM/yyyy"
-  className={`form-control ${isValidDate ? "" : "is-invalid"}`}
-  placeholderText="Select a delivery date"
-  required
-  autoComplete="off"
-/>
+                      id="estimated-delivery"
+                      selected={estimatedDelivery || null} // Default to null if the date is invalid
+                      onChange={handleDateChange}
+                      dateFormat="dd/MM/yyyy"
+                      className={`form-control ${
+                        isValidDate ? "" : "is-invalid"
+                      }`}
+                      placeholderText="Select a delivery date"
+                      required
+                      autoComplete="off"
+                    />
 
                     {!isValidDate && (
                       <div className="invalid-feedback">
@@ -348,7 +347,7 @@ const Orderlist = ({ handleLogout, adminData }) => {
                       onChange={(e) => setOrderStatus(e.target.value)}
                     >
                       <option value="">Select Status</option>
-                     
+
                       <option value="Dispatched">Dispatched</option>
                       <option value="Shipped">Shipped</option>
                       <option value="Out for Delivery">Out for Delivery</option>
