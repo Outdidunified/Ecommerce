@@ -47,7 +47,7 @@ const Register = () => {
 
     // Validate username
     if (!usernameRegex.test(formData.username)) {
-      setUsernameError('Username must be at least 3-15 characters long and contain only letters, numbers, and underscores.');
+      setUsernameError('Username must be at least 3-15 characters long and contain only letters, numbers.');
       return;
     }
 

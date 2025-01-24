@@ -147,7 +147,7 @@ const OrderDetails = ({ handleLogout, userdata }) => {
 
                                     <td className="price">
                                         <h4 className="table-title text-content">Price</h4>
-                                        <h6 className="theme-color">${item.price}</h6>
+                                        <h6 className="theme-color">Rs.{item.price}</h6>
                                     </td>
 
                                     <td className="quantity">
