@@ -61,7 +61,7 @@ const Header = ({ handleLogout, adminData }) => {
               className="form-inline search-full"
               onSubmit={handleSearchSubmit}
             >
-              <div className="form-group w-100">
+              {/* <div className="form-group w-100">
                 <div className="Typeahead Typeahead--twitterUsers">
                   <div className="u-posRelative">
                     <input
@@ -82,7 +82,7 @@ const Header = ({ handleLogout, adminData }) => {
                   </div>
                   <div className="Typeahead-menu"></div>
                 </div>
-              </div>
+              </div> */}
             </form>
 
             <div className="nav-right col-6 pull-right right-header p-0">
