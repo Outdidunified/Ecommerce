@@ -146,7 +146,7 @@ const AddUser = ({ handleLogout, adminData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     const validationErrors = {};
     Object.keys(formData).forEach((field) => {
       const error = validateField(field, formData[field]);
@@ -154,29 +154,43 @@ const AddUser = ({ handleLogout, adminData }) => {
         validationErrors[field] = error;
       }
     });
-
+  
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
+  
     axios
       .post("/admin/adduser", formData, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(() => {
-        toast.success("User added successfully!");
-        
-        // Wait for 2 seconds before navigating
-        setTimeout(() => {
-          navigate("/allusers");
-        }, 2000);
+      .then((response) => {
+        if (response.status === 200) {
+          toast.success("User added successfully!");
+  
+          // Wait for 2 seconds before navigating
+          setTimeout(() => {
+            navigate("/allusers");
+          }, 2000);
+        }
       })
       .catch((error) => {
-        console.error("Error adding user:", error);
-        toast.error("Failed to add user.");
+        if (error.response) {
+          // Extract the error message from the backend response
+          const backendMessage = error.response.data.message || "An error occurred.";
+          if (error.response.status === 400) {
+            toast.error(`${backendMessage}`);
+          } else {
+            toast.error("Unexpected error occurred.");
+          }
+        } else {
+          // Handle unexpected errors
+          console.error("Error adding user:", error);
+          toast.error("Failed to add user. Please try again.");
+        }
       });
   };
+  
 
   return (
     <div>

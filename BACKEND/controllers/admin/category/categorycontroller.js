@@ -245,12 +245,11 @@ exports.getcategory = (req, res) => {
       return res.status(500).json({ message: 'Error fetching categories', error: err.message });
     }
     if (results.length === 0) {
-      return res.status(404).json({ message: 'No categories found with status = 1' });
+      return res.status(404).json({ message: 'No categories found. Please add a category first.' });
     }
     res.status(200).json({ categories: results });
   });
 };
-
 
 
 
@@ -278,6 +277,13 @@ exports.getsubcateg = (req, res) => {
 
     console.log('Subcategories fetched:', results);
 
+    // If no subcategories found, return a more user-friendly message
+    if (results.length === 0) {
+      return res.status(404).send({
+        message: 'No subcategories found. Please add a subcategory first.',
+      });
+    }
+
     // Return the list of subcategories
     res.status(200).send({
       message: 'Subcategories retrieved successfully',
@@ -285,7 +291,6 @@ exports.getsubcateg = (req, res) => {
     });
   });
 };
-
 
 
 exports.getAllSubCategories = (req, res) => {

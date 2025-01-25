@@ -25,7 +25,7 @@ exports.signup = (req, res) => {
       if (err) return res.status(500).json({ message: 'Database error', error: err });
 
       if (result.length > 0) {
-        return res.status(400).json({ message: 'User already exists' });
+        return res.status(400).json({ message: 'Email already exists' });
       }
 
       // Insert the new user into the users table
@@ -62,6 +62,11 @@ exports.signin = (req, res) => {
 
     const user = result[0];
 
+    // Check if the user's account is active (active = 1)
+    if (user.active === 0) {
+      return res.status(403).json({ message: 'Your account is deactivated' });
+    }
+
     // Check if password is correct
     if (password !== user.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -92,13 +97,14 @@ exports.signin = (req, res) => {
         username: user.username,
         password: user.password,
         email_id: user.email_id,
-        role: role_name,
+        role_name: role_name,
         role_id: user.role_id,
         user_type: user.user_type,
       });
     });
   });
 };
+
 
 exports.updateSettings = (req, res) => {
   const { user_id, username, password, modified_by } = req.body;
@@ -270,25 +276,35 @@ exports.addUser = (req, res) => {
       return res.status(400).json({ message: 'Invalid role_id. Only role_id 1 (user) or 2 (admin) are allowed' });
     }
 
-    // Check if the user already exists
-    db.query('SELECT * FROM users WHERE email_id = ?', [email_id], (err, result) => {
-      if (err) return res.status(500).json({ message: 'Database error', error: err });
+    // Check if the admin's role_id = 2 and status = 0, if yes, they cannot add new users
+    db.query('SELECT status FROM roles WHERE role_id = ?', [decoded.role], (err, result) => {
+      if (err) return res.status(500).json({ message: 'Error checking admin status', error: err });
 
-      if (result.length > 0) {
-        return res.status(400).json({ message: 'User already exists' });
+      if (result.length > 0 && result[0].status === 0) {
+        return res.status(403).json({ message: 'This admin account is deactivated' });
       }
 
-      // Insert the new user into the database
-      const query = `INSERT INTO users (username, email_id, password, user_type, address, role_id, pincode, phone, country, state, created_by) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-      db.query(query, [username, email_id, password, user_type, address, role_id, pincode, phone, country, state, created_by], (err, result) => {
-        if (err) return res.status(500).json({ message: 'Error adding user', error: err });
+      // Check if the user already exists
+      db.query('SELECT * FROM users WHERE email_id = ?', [email_id], (err, result) => {
+        if (err) return res.status(500).json({ message: 'Database error', error: err });
 
-        res.status(200).json({ message: 'User added successfully', user_id: result.insertId });
+        if (result.length > 0) {
+          return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Insert the new user into the database
+        const query = `INSERT INTO users (username, email_id, password, user_type, address, role_id, pincode, phone, country, state, created_by) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        db.query(query, [username, email_id, password, user_type, address, role_id, pincode, phone, country, state, created_by], (err, result) => {
+          if (err) return res.status(500).json({ message: 'Error adding user', error: err });
+
+          res.status(200).json({ message: 'User added successfully', user_id: result.insertId });
+        });
       });
     });
   });
 };
+
 
 // Update user (Admin only)
 exports.updateUser = (req, res) => {

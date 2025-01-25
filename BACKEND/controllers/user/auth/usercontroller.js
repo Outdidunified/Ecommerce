@@ -63,6 +63,11 @@ exports.signin = (req, res) => {
 
     const user = result[0];
 
+    // Check if the user's account is active (active = 1)
+    if (user.active === 0) {
+      return res.status(403).json({ message: 'Your account is deactivated. Please contact support.' });
+    }
+
     // Check if password is correct
     if (password !== user.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -93,13 +98,14 @@ exports.signin = (req, res) => {
         username: user.username,
         password: user.password,
         email_id: user.email_id,
-        //role: role_name,
+        role_name: role_name,
         role_id: user.role_id,
         user_type: user.user_type,
       });
     });
   });
 };
+
 
 exports.update = (req, res) => {
   const { user_id, username, password, address, pincode, country, state, modified_by } = req.body;

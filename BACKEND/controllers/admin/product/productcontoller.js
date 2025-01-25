@@ -1,54 +1,61 @@
 const db=require('../../../config/db');
 exports.addProduct = (req, res) => {
-    const { product_name, price, unit, quantity, exchangable, refundable, created_by, description, category_id, sub_category_id } = req.body;
-  
-    console.log('Request Body:', req.body);
-    console.log('Uploaded Files:', req.files);
-  
-    // Check if image files are uploaded
-    const image = req.files?.image?.[0]?.path || null;
-    const image2 = req.files?.image2?.[0]?.path || null;
-  
-    // Validate input fields
-    if (!product_name || !price || !unit || !quantity || !category_id || !sub_category_id) {
-      return res.status(400).send({ message: 'Required fields are missing' });
+  const { product_name, price, unit, quantity, exchangable, refundable, created_by, description, category_id, sub_category_id } = req.body;
+
+  console.log('Request Body:', req.body);
+  console.log('Uploaded Files:', req.files);
+
+  // Check if image files are uploaded
+  const image = req.files?.image?.[0]?.path || null;
+  const image2 = req.files?.image2?.[0]?.path || null;
+
+  // Validate input fields
+  if (!product_name || !price || !unit || !quantity || !category_id || !sub_category_id) {
+    return res.status(400).send({ message: 'Required fields are missing' });
+  }
+
+  // Check if the category exists
+  const getCategoryQuery = 'SELECT category_id FROM main_categor WHERE category_id = ?';
+  db.query(getCategoryQuery, [category_id], (err, categoryResults) => {
+    if (err) {
+      return res.status(500).send({ message: 'Database error occurred while checking categories' });
     }
-  
-    // Check if the category exists
-    const getCategoryQuery = 'SELECT category_id FROM main_categor WHERE category_id = ?';
-    db.query(getCategoryQuery, [category_id], (err, categoryResults) => {
+
+    // Handle no categories found with custom message
+    if (categoryResults.length === 0) {
+      return res.status(400).send({ message: 'No categories found, please add a category first' });
+    }
+
+    // Check if the subcategory exists for the category
+    const getSubCategoryQuery = 'SELECT sub_category_id FROM sub_categor WHERE sub_category_id = ? AND main_category_id = ?';
+    db.query(getSubCategoryQuery, [sub_category_id, category_id], (err, subCategoryResults) => {
       if (err) {
-        return res.status(500).send({ message: 'Database error', error: err.message });
+        return res.status(500).send({ message: 'Database error occurred while checking subcategories' });
       }
-      if (categoryResults.length === 0) {
-        return res.status(400).send({ message: 'Category not found' });
+
+      // Handle no subcategory found with custom message
+      if (subCategoryResults.length === 0) {
+        return res.status(400).send({ message: 'Subcategory not found for the selected category' });
       }
-  
-      // Check if the subcategory exists for the category
-      const getSubCategoryQuery = 'SELECT sub_category_id FROM sub_categor WHERE sub_category_id = ? AND main_category_id = ?';
-      db.query(getSubCategoryQuery, [sub_category_id, category_id], (err, subCategoryResults) => {
+
+      // Insert the product into the database
+      const query = `
+        INSERT INTO product 
+        (product_name, price, unit, quantity, exchangable, refundable, created_by, description, image, image2, category_id, sub_category_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      db.query(query, [product_name, price, unit, quantity, exchangable, refundable, created_by, description, image, image2, category_id, sub_category_id], (err, result) => {
         if (err) {
-          return res.status(500).send({ message: 'Database error', error: err.message });
+          return res.status(500).send({ message: 'Error inserting product into the database' });
         }
-        if (subCategoryResults.length === 0) {
-          return res.status(400).send({ message: 'Subcategory not found for the category' });
-        }
-  
-        // Insert the product into the database
-        const query = `
-          INSERT INTO product 
-          (product_name, price, unit, quantity, exchangable, refundable, created_by, description, image, image2, category_id, sub_category_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        db.query(query, [product_name, price, unit, quantity, exchangable, refundable, created_by, description, image, image2, category_id, sub_category_id], (err, result) => {
-          if (err) {
-            return res.status(500).send({ message: 'Error inserting product', error: err.message });
-          }
-          res.status(200).send({ message: 'Product added successfully', product_id: result.insertId });
-        });
+        res.status(200).send({ message: 'Product added successfully', product_id: result.insertId });
       });
     });
-  };
+  });
+};
+
+
+
   
   
   // Get all products

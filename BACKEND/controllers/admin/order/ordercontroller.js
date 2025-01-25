@@ -228,9 +228,9 @@ exports.getAllOrdersSummary = (req, res) => {
       COUNT(CASE WHEN o.status = 'Pending' THEN 1 ELSE NULL END) AS pending_orders,
 
       COUNT(DISTINCT CASE 
-        WHEN u.role_id = 1 THEN u.user_id 
+        WHEN u.role_id = 1 AND u.active = 1 THEN u.user_id  -- Count customers (role_id = 1) with active status = 1
         ELSE NULL 
-      END) AS total_customers,  -- Count customers with role_id = 1 (admin)
+      END) AS total_customers,  -- Count active customers with role_id = 1
 
       (SELECT COUNT(*) FROM product WHERE status = 1) AS total_products  -- Count total products with status = 1
     FROM users u
