@@ -79,30 +79,32 @@ const AddProduct = ({ handleLogout, adminData }) => {
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Create FormData object for images and other fields
     const formData = new FormData();
-    
+
     // Append images to FormData
     formData.append("image", image1); // First image
     formData.append("image2", image2); // Second image
-  
+
     // Find the selected category object
     const selectedCategoryObj = categories.find(
       (category) => category.category_name === selectedCategory
     );
-  
+
     // Find the selected subcategory object
     const selectedSubCategoryObj = subCategories.find(
       (subCategory) => subCategory.sub_category_name === selectedSubCategory
     );
-  
+
     // Append product data to FormData
     formData.append("category_id", selectedCategoryObj?.category_id || "");
-    formData.append("sub_category_id", selectedSubCategoryObj?.sub_category_id || "");
+    formData.append(
+      "sub_category_id",
+      selectedSubCategoryObj?.sub_category_id || ""
+    );
     formData.append("product_name", productName);
     formData.append("price", parseFloat(price));
     formData.append("unit", unit);
@@ -112,11 +114,10 @@ const AddProduct = ({ handleLogout, adminData }) => {
     formData.append("created_by", adminData.admin_name);
     formData.append("role_id", 2); // Assuming 2 is the role_id for admin
     formData.append("description", productDescription);
-  
-  
+
     // Log the final FormData for debugging
     console.log("FormData to Send:", formData);
-  
+
     // Send the FormData as a POST request
     try {
       const response = await axios.post("/products/add", formData, {
@@ -124,7 +125,7 @@ const AddProduct = ({ handleLogout, adminData }) => {
           "Content-Type": "multipart/form-data", // Set content type to multipart/form-data for file upload
         },
       });
-  
+
       if (response.status === 200) {
         toast.success("Product added successfully!");
         setTimeout(() => navigate("/Viewproduct"), 2000);
@@ -134,9 +135,6 @@ const AddProduct = ({ handleLogout, adminData }) => {
       toast.error(err.response?.data?.message || "Error adding product");
     }
   };
-  
-
-  
 
   return (
     <div>
@@ -170,9 +168,16 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                   className="form-control"
                                   type="text"
                                   value={productName}
-                                  onChange={(e) =>
-                                    setProductName(e.target.value)
-                                  }
+                                  onChange={(e) => {
+                                    const input = e.target.value;
+                                    // Allow only alphanumeric characters and limit to 10 characters
+                                    if (
+                                      /^[a-zA-Z0-9]*$/.test(input) &&
+                                      input.length <= 10
+                                    ) {
+                                      setProductName(input);
+                                    }
+                                  }}
                                   placeholder="Product Name"
                                   required
                                 />
@@ -280,7 +285,6 @@ const AddProduct = ({ handleLogout, adminData }) => {
                               </div>
                             </div>
 
-                  
                             {/* Price */}
                             <div className="mb-4 row align-items-center">
                               <label className="form-label-title col-sm-3 mb-0">

@@ -2,7 +2,11 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+<<<<<<< HEAD
   "proxy": "http://192.168.1.35:6382",
+=======
+  "proxy": "http://192.168.249.222:6382",
+>>>>>>> bdd7305a2223ccb726f323fe24198867b3c2228e
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
