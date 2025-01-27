@@ -25,11 +25,7 @@ const Header = ({ handleLogout, userdata }) => {
           // Success case
           if (Array.isArray(response.data.categories)) {
             setCategories(response.data.categories);
-          } else if(response.status === 400){
-            const backendMessage = response.data.message ;
-           
-            toast.error(backendMessage);
-          }
+          } 
         } 
       } catch (err) {
         if (err.response && err.response.status === 400) {
@@ -39,7 +35,7 @@ const Header = ({ handleLogout, userdata }) => {
         } else {
           // Handle other errors
           console.error("Error fetching categories:", err);
-         
+          toast.error("Error fetching categories");
         }
       }
     };

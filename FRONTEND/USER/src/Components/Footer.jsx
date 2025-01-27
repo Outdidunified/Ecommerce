@@ -12,19 +12,24 @@ const Footer = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("/product/categoryname"); // Ensure this is your correct API endpoint
-
-        // Assuming the API returns an array of categories, we only need the first 10
-        if (Array.isArray(response.data.categories)) {
-          setCategories(response.data.categories.slice(0, 10)); // Limit to the first 10 categories
-        } else if(response.status === 400){
-                    const backendMessage = response.data.message ;
-                   
-                    toast.error(backendMessage);
-                  }
+        const response = await axios.get("/product/categoryname"); // Update with your actual API endpoint
+    
+        if (response.status === 200) {
+          // Success case
+          if (Array.isArray(response.data.categories)) {
+            setCategories(response.data.categories);
+          } 
+        } 
       } catch (err) {
-        console.error("Error fetching categories:", err);
-        
+        if (err.response && err.response.status === 400) {
+          // Handle specific 400 status in catch
+          const backendMessage = err.response.data.message;
+          toast.error(backendMessage);
+        } else {
+          // Handle other errors
+          console.error("Error fetching categories:", err);
+          toast.error("Error fetching categories");
+        }
       }
     };
 
