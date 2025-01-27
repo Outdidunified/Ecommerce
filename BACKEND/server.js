@@ -37,7 +37,7 @@ app.use('/cart', CartRoutes);
 app.use('/order', OrderRoutes);
   // Serve static files from the uploads directory
 
-const HTTP_PORT = process.env.HTTP_PORT || 6382;
+const HTTP_PORT = process.env.HTTP_PORT || 6386;
 app.listen(HTTP_PORT, () => {
   console.log(`Server running on port ${HTTP_PORT}`);
 });
