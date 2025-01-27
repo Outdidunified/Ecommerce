@@ -20,21 +20,31 @@ const Header = ({ handleLogout, userdata }) => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get("/product/categoryname"); // Update with your actual API endpoint
-
-        // Ensure categories is an array
-        if (Array.isArray(response.data.categories)) {
-         
-          setCategories(response.data.categories);
-        } else {
-          console.error("Invalid categories data structure:", response.data);
-          toast.error("Error fetching categories");
-        }
+    
+        if (response.status === 200) {
+          // Success case
+          if (Array.isArray(response.data.categories)) {
+            setCategories(response.data.categories);
+          } else if(response.status === 400){
+            const backendMessage = response.data.message ;
+           
+            toast.error(backendMessage);
+          }
+        } 
       } catch (err) {
-        console.error("Error fetching categories:", err);
-        toast.error("Error fetching categories:", err);
+        if (err.response && err.response.status === 400) {
+          // Handle specific 400 status in catch
+          const backendMessage = err.response.data.message;
+          toast.error(backendMessage);
+        } else {
+          // Handle other errors
+          console.error("Error fetching categories:", err);
+         
+        }
       }
     };
-
+    
+    
     fetchCartItems(); // Fetch cart items when the component mounts
 
     fetchCategories();
