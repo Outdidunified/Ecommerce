@@ -25,7 +25,7 @@ const SubCategory = ({ handleLogout, adminData }) => {
         if (response.status === 200) {
           setCategories(response.data.subcategories); // Use `subcategories` from the response
         } else {
-          throw new Error("Failed to fetch categories");
+          throw new Error("No Categories found");
         }
       } catch (err) {
         setErrorMessage(
@@ -143,7 +143,7 @@ const SubCategory = ({ handleLogout, adminData }) => {
         );
         setShowCategoryModal(false); // Close modal on successful update
       } else {
-        throw new Error("Failed to update subcategory");
+        throw new Error("Failed to fetch subcategory");
       }
     } catch (err) {
       setErrorMessage(

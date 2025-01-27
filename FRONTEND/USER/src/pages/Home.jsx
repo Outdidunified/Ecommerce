@@ -131,13 +131,14 @@ const Home = ({ handleLogout, userdata }) => {
         // Ensure categories is an array
         if (Array.isArray(response.data.categories)) {
           setCategories(response.data.categories);
-        } else {
-          console.error("Invalid categories data structure:", response.data);
-          toast.error("Error fetching categories");
-        }
+        } else if(response.status === 400){
+                    const backendMessage = response.data.message ;
+                   
+                    toast.error(backendMessage);
+                  }
       } catch (err) {
         console.error("Error fetching categories:", err);
-        toast.error("Error fetching categories:", err);
+     
       }
     };
 

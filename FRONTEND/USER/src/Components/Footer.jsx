@@ -17,13 +17,14 @@ const Footer = () => {
         // Assuming the API returns an array of categories, we only need the first 10
         if (Array.isArray(response.data.categories)) {
           setCategories(response.data.categories.slice(0, 10)); // Limit to the first 10 categories
-        } else {
-          console.error("Invalid categories data structure:", response.data);
-          toast.error("Error fetching categories");
-        }
+        } else if(response.status === 400){
+                    const backendMessage = response.data.message ;
+                   
+                    toast.error(backendMessage);
+                  }
       } catch (err) {
         console.error("Error fetching categories:", err);
-        toast.error("Error fetching categories");
+        
       }
     };
 

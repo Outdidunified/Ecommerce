@@ -75,7 +75,7 @@ const db=require('../../../config/db');
         return res.status(500).json({ message: 'Error fetching categories', error: err.message });
       }
       if (results.length === 0) {
-        return res.status(404).json({ message: 'No categories found with status = 1' });
+        return res.status(400).json({ message: 'No categories found  ' });
       }
       res.status(200).json({ categories: results });
     });
@@ -98,7 +98,7 @@ const db=require('../../../config/db');
             return res.status(500).send({ message: 'Error fetching products', error: err.message });
         }
         if (results.length === 0) {
-            return res.status(404).send({ message: 'No products found with status = 1' });
+            return res.status(400).send({ message: 'No products found' });
         }
 
         // Send all products as the response with the full URL for images
