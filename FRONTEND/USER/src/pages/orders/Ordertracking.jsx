@@ -13,8 +13,8 @@ const Ordertracking = ({ handleLogout, userdata }) => {
   // Define order status steps
   const statusOrder = ['Confirmed', 'Dispatched', 'Shipped', 'Out for Delivery', 'Delivered'];
 
-  // Calculate the current step based on the order status
-  const currentStatusIndex = statusOrder.indexOf(order?.status); // Dynamic index based on order status
+  // // Calculate the current step based on the order status
+  // const currentStatusIndex = statusOrder.indexOf(order?.status); // Dynamic index based on order status
 
   useEffect(() => {
     // Set a timeout to stop the loader after 2 seconds
