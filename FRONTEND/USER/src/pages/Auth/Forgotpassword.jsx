@@ -24,6 +24,7 @@ const Forgotpassword = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault(); // Prevent default form submission behavior
+   
 
     try {
       const response = await axios.post("/user/forgotPassword", {
