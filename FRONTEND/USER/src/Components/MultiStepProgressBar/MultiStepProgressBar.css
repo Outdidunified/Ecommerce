@@ -1,0 +1,141 @@
+/* General Styles */
+.indexedStep {
+    color: rgb(190, 190, 190);
+    width: 40px; /* Default width for larger screens */
+    height: 40px; /* Default height for larger screens */
+    font-size: 14px; /* Default font size for larger screens */
+    background-color: rgb(255, 255, 255);
+    border-radius: 50%;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(206, 206, 206);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 15px; /* Default space between steps */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.indexedStep.accomplished {
+    background-color: rgb(190, 190, 190);
+    color: white;
+    border-style: none;
+}
+
+.progress-bar-container {
+    margin-bottom: 5px;
+    margin-top: 5px;
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Centering the progress bar */
+    align-items: center;
+}
+
+/* Flex container for the progress bar and steps */
+.RSPBprogressBar {
+    height: 4px; /* Default height */
+    width: 80%; /* Default width for larger screens */
+    line-height: 1;
+    border-radius: 10px;
+    position: relative;
+    background-color: rgb(207, 207, 207);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 0;
+    margin: 20px auto;
+}
+
+.RSPBprogressBar .RSPBstep {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 0;
+    position: absolute;
+    transform: translateX(-50%);
+    transition-property: all;
+    transition-timing-function: ease;
+}
+
+.RSPBprogressBar .RSPBprogressBarText {
+    color: white;
+    font-size: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.RSPBprogressBar .RSPBprogression {
+    position: absolute;
+    transition: width 0.3s ease;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 10px;
+    background: #30c00c;
+    z-index: -1;
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+    .indexedStep {
+        width: 35px; /* Adjust width for tablets and small screens */
+        height: 35px; /* Adjust height for tablets and small screens */
+        font-size: 12px; /* Adjust font size for tablets */
+        margin: 0 12px; /* Adjust space between steps */
+    }
+
+    .RSPBprogressBar {
+        width: 85%; /* Increase width on tablets */
+    }
+}
+
+/* Mobile styles for smaller screens */
+@media screen and (max-width: 480px) {
+    .indexedStep {
+        width: 30px; /* Adjust width for mobile */
+        height: 30px; /* Adjust height for mobile */
+        font-size: 12px; /* Adjust font size for mobile */
+        margin: 0 10px; /* Adjust space between steps */
+    }
+
+    .RSPBprogressBar {
+        width: 90%; /* Increase width on smaller screens */
+    }
+
+    .indexedStepContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .statusTitle {
+        font-size: 12px; /* Adjust status text size for mobile */
+        margin-top: 5px;
+    }
+
+    .statusTitle.completed {
+        color: #30c00c; /* Change color for completed step on mobile */
+    }
+}
+
+/* Desktop styles (default) */
+@media screen and (min-width: 1024px) {
+    .indexedStep {
+        width: 50px; /* Adjust width for larger screens */
+        height: 50px; /* Adjust height for larger screens */
+        font-size: 16px; /* Adjust font size for larger screens */
+        margin: 0 20px; /* Adjust space between steps */
+    }
+
+    .RSPBprogressBar {
+        width: 70%; /* Adjust width for larger screens */
+    }
+}
+
+/* Accomplished Step Title in Green */
+.indexedStepContainer .statusTitle.completed {
+    color: #30c00c; /* Green color for accomplished steps */
+}
