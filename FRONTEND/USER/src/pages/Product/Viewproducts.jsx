@@ -30,8 +30,8 @@ const Viewproducts = ({ handleLogout, userdata }) => {
   const [quantity, setQuantity] = useState(1); // Default quantity is 1
 
   // Map 1/0 to "Yes" or "No" for exchangable and refundable
-  const isExchangable = product.exchangable === 1 ? 'Yes' : 'No';
-  const isRefundable = product.refundable === 1 ? 'Yes' : 'No';
+  // const isExchangable = product.exchangable === 1 ? 'Yes' : 'No';
+  // const isRefundable = product.refundable === 1 ? 'Yes' : 'No';
 
   // Handle quantity change
   const handleQuantityChange = (event) => {
@@ -191,12 +191,12 @@ const Viewproducts = ({ handleLogout, userdata }) => {
                 <p className="w-100">{product.description}</p>
               </div>
 
-              <div className="product-package">
+              {/* <div className="product-package">
                 <div className="product-title">
                   <p><strong>Is Exchangable:</strong> {isExchangable}</p>
                   <p><strong>Is Refundable:</strong> {isRefundable}</p>
                 </div>
-              </div>
+              </div> */}
 
               <div className="note-box product-package">
                 <div className="cart_qty qty-box product-qty">
