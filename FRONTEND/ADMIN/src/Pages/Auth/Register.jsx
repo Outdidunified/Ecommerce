@@ -139,7 +139,7 @@ const Register = () => {
                     <div className="col-12">
                       <div className="form-floating theme-form-floating log-in-form">
                         <input
-                          type="password"
+                          type="text"
                           className="form-control"
                           id="password"
                           placeholder="Password"
