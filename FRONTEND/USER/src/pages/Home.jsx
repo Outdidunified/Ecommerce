@@ -24,33 +24,59 @@ const Home = ({ handleLogout, userdata }) => {
 
 
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get("/product"); // Update with your API endpoint
-        const fetchedProducts = Array.isArray(response.data)
-          ? response.data
-          : response.data.products || [];
-       
-        setProducts(fetchedProducts);
-      } catch (err) {
-        setError(err.message);
-        toast.error(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+       useEffect(() => {
+        const fetchProducts = async () => {
+          try {
+            const response = await axios.get("/product"); // Update with your API endpoint
+            const fetchedProducts = Array.isArray(response.data)
+              ? response.data
+              : response.data.products || [];
+            
+            setProducts(fetchedProducts);
+            toast.success("Products fetched successfully!"); // Success toast for products
+          } catch (err) {
+            setError(err.response.data.message);
 
-    fetchProducts();
-    fetchCartItems(); // Fetch cart items when the component mounts
-    const timer = setTimeout(() => {
-      setIsLoading(false); // Hide loader after 1 second
-   
-  }, 1000);
-
-  return () => clearTimeout(timer);
-  }, [fetchCartItems]);
-
+          } finally {
+            setLoading(false);
+          }
+        };
+      
+        const fetchCategories = async () => {
+          try {
+            const response = await axios.get("/product/categoryname"); // Update with your actual API endpoint
+        
+            if (response.status === 200) {
+              // Success case
+              if (Array.isArray(response.data.categories)) {
+                setCategories(response.data.categories);
+                toast.success("Categories fetched successfully!"); // Success toast for categories
+              } 
+            }
+          } catch (err) {
+            if (err.response && err.response.status === 400) {
+              // Handle specific 400 status in catch
+              const backendMessage = err.response.data.message;
+              toast.error( backendMessage); // Toast error for 400 status
+            } else {
+              // Handle other errors
+              console.error("Error fetching categories:", err);
+              toast.error("Error fetching categories"); // General error toast for categories
+            }
+          }
+        };
+      
+        fetchCategories();
+        fetchProducts();
+        fetchCartItems(); // Fetch cart items when the component mounts
+      
+        const timer = setTimeout(() => {
+          setIsLoading(false); // Hide loader after 1 second
+        }, 1000);
+      
+        return () => clearTimeout(timer);
+      }, [fetchCartItems]);
+      
   const handleClick = async (product) => {
     const storedToken = localStorage.getItem("authToken"); // Get the token from localStorage
 
@@ -122,28 +148,7 @@ const Home = ({ handleLogout, userdata }) => {
 
   const limitedProducts = products.slice(0, 15);
 
-  // Fetch categories from API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get("/product/categoryname"); // Update with your actual API endpoint
 
-        // Ensure categories is an array
-        if (Array.isArray(response.data.categories)) {
-          setCategories(response.data.categories);
-        } else if(response.status === 400){
-                    const backendMessage = response.data.message ;
-                   
-                    toast.error(backendMessage);
-                  }
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-     
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -189,7 +194,7 @@ const Home = ({ handleLogout, userdata }) => {
     </div>
       ) : (
         <> 
-        <Header handleLogout={handleLogout} userdata={userdata} cartCount={cartCount} />
+        <Header handleLogout={handleLogout} userdata={userdata} cartCount={cartCount}  />
    <Mobileview userdata={userdata}/>
 
  
@@ -360,65 +365,74 @@ const Home = ({ handleLogout, userdata }) => {
             </div>
 
             <div className="col-xxl-9 col-lg-8">
-              <div className="title d-block">
-                <h2 className="text-theme font-sm">Our Exclusive Products</h2>
-              </div>
-              <div className="row row-cols-xxl-5 row-cols-xl-4 row-cols-md-3 row-cols-2 g-sm-4 g-3 no-arrow section-b-space">
-                {limitedProducts.map((product) => (
-                  <div key={product.product_id} className="col">
-                    <div className="product-box product-white-bg wow fadeIn">
-                      <div className="product-image">
-                        <Link
-                          to="/viewproducts"
-                          state={{
-                            product,
-                          }}
-                        >
-                          <img
-                            src={
-                              product.image && product.image !== "/uploads/null"
-                                ? product.image
-                                : "/images/placeholder.jpg"
-                            }
-                            alt={product.product_name || "Product image"}
-                            className="img-fluid"
-                            style={{
-                              maxWidth: "100px",
-                              maxHeight: "100px",
-                              objectFit: "cover",
-                              borderRadius: "5px",
-                            }}
-                          />
-                        </Link>
-                      </div>
+  <div className="title d-block">
+    <h2 className="text-theme font-sm">Our Exclusive Products</h2>
+  </div>
 
-                      <div className="product-detail position-relative">
-                        <Link to="/viewproducts" state={{ product }}>
-                          <h6 className="name">{product.product_name}</h6>
-                        </Link>
-                        <h6 className="units">{product.unit}</h6>{" "}
-                        {/* Display units */}
-                        <h6 className="category">
-                          {product.category_name}
-                        </h6>{" "}
-                        {/* Display category name */}
-                        <h6 className="price theme-color">
-                          Rs.{product.price}
-                        </h6>
-                        <div className="add-to-cart-btn-2 addtocart_btn">
-                          <button
-                            className="btn addcart-button btn buy-button"
-                            onClick={() => handleClick(product)} // Pass the product object
-                          >
-                            <i className="fa-solid fa-plus"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+  {/* Check if there are products */}
+  {limitedProducts.length === 0 ? (
+    <div className="no-products-container text-center">
+      <div className="no-products-message">
+        <i className="fa-solid fa-box-open"></i> {/* Optional icon */}
+        <h4>No products available</h4>
+        <p>Please check back later or explore other categories.</p>
+        
+      </div>
+    </div>
+  ) : (
+    <div className="row row-cols-xxl-5 row-cols-xl-4 row-cols-md-3 row-cols-2 g-sm-4 g-3 no-arrow section-b-space">
+      {limitedProducts.map((product) => (
+        <div key={product.product_id} className="col">
+          <div className="product-box product-white-bg wow fadeIn">
+            <div className="product-image">
+              <Link
+                to="/viewproducts"
+                state={{
+                  product,
+                }}
+              >
+                <img
+                  src={
+                    product.image && product.image !== "/uploads/null"
+                      ? product.image
+                      : "/images/placeholder.jpg"
+                  }
+                  alt={product.product_name || "Product image"}
+                  className="img-fluid"
+                  style={{
+                    maxWidth: "100px",
+                    maxHeight: "100px",
+                    objectFit: "cover",
+                    borderRadius: "5px",
+                  }}
+                />
+              </Link>
+            </div>
+
+            <div className="product-detail position-relative">
+              <Link to="/viewproducts" state={{ product }}>
+                <h6 className="name">{product.product_name}</h6>
+              </Link>
+              <h6 className="units">{product.unit}</h6>
+              <h6 className="category">{product.category_name}</h6>
+              <h6 className="price theme-color">Rs.{product.price}</h6>
+              <div className="add-to-cart-btn-2 addtocart_btn">
+                <button
+                  className="btn addcart-button btn buy-button"
+                  onClick={() => handleClick(product)} // Pass the product object
+                >
+                  <i className="fa-solid fa-plus"></i>
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+
           </div>
         </div>
       </section>
