@@ -212,21 +212,6 @@ const Profilesetting = ({ handleLogout, adminData }) => {
                                 </div>
                               </div>
 
-                              {/* Role Id */}
-                              <div className="mb-4 row align-items-center">
-                                <label className="form-label-title col-sm-2 mb-0">
-                                  Role Id
-                                </label>
-                                <div className="col-sm-10">
-                                  <input
-                                    className="form-control"
-                                    type="text"
-                                    value={roleId}
-                                    readOnly
-                                    placeholder="Role Id"
-                                  />
-                                </div>
-                              </div>
 
                               {/* Password Field */}
                               <div className="mb-4 row align-items-center">
