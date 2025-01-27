@@ -209,30 +209,17 @@ exports.updateOrderStatusByAdmin = (req, res) => {
   });
 };
 
-
-
-
-
-
-
-
 exports.getAllOrdersSummary = (req, res) => {
-  // Query to fetch the total orders, pending orders, customer count, and total products with status = 1
+  // Query to fetch the total orders, pending orders, customer count, and total products without filters
   const query = `
     SELECT 
+      COUNT(DISTINCT o.order_id) AS total_orders,  -- Count all orders
+      COUNT(CASE WHEN o.status = 'Pending' THEN 1 ELSE NULL END) AS pending_orders,  -- Count pending orders
       COUNT(DISTINCT CASE 
-        WHEN o.status NOT IN ('Cancelled', 'Pending') AND o.status IS NOT NULL THEN o.order_id 
+        WHEN u.role_id = 1 THEN u.user_id  -- Count all customers with role_id = 1
         ELSE NULL 
-      END) AS total_orders, 
-
-      COUNT(CASE WHEN o.status = 'Pending' THEN 1 ELSE NULL END) AS pending_orders,
-
-      COUNT(DISTINCT CASE 
-        WHEN u.role_id = 1 AND u.active = 1 THEN u.user_id  -- Count customers (role_id = 1) with active status = 1
-        ELSE NULL 
-      END) AS total_customers,  -- Count active customers with role_id = 1
-
-      (SELECT COUNT(*) FROM product WHERE status = 1) AS total_products  -- Count total products with status = 1
+      END) AS total_customers,  -- Count all customers regardless of status
+      (SELECT COUNT(*) FROM product) AS total_products  -- Count all products
     FROM users u
     LEFT JOIN orders o ON u.user_id = o.user_id
   `;
