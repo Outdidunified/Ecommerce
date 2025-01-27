@@ -89,7 +89,6 @@ const db=require('../../../config/db');
         FROM product p
         JOIN main_categor c ON p.category_id = c.category_id
         JOIN sub_categor s ON p.sub_category_id = s.sub_category_id
-        WHERE p.status = 1  -- Only include products with status = 1
         ORDER BY p.created_date ASC, p.product_id ASC;  -- Sort by created_date ascending (newer products last), and product_id for tie-breaking
     `;
 
