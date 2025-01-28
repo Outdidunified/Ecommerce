@@ -14,7 +14,8 @@ import Mobileview from "../../Components/Mobileview";
 const Categorypage = ({ handleLogout, userdata }) => {
   const location = useLocation();
   const [subcategories, setSubcategories] = useState([]);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
+
   const [products, setProducts] = useState([]);
   const [, setLoading] = useState(true);
   const isLoggedIn = userdata && userdata.user_name;
@@ -34,20 +35,25 @@ const Categorypage = ({ handleLogout, userdata }) => {
         const response = await axios.post("/product/subcategorylist", {
           category_id: categoryId, // Send categoryId in the request body
         });
-
-        if (Array.isArray(response.data.subcategories)) {
-          setSubcategories(response.data.subcategories);
-        } else {
-          console.error("Invalid subcategories data structure:", response.data);
-          setError("Invalid data structure received.");
-          toast.error("Failed to fetch subcategories.");
+    
+        if (response.status === 200) {
+          if (Array.isArray(response.data.subcategories)) {
+            setSubcategories(response.data.subcategories);
+          } 
+        } else if (response.status === 400) {
+          console.error("Backend error:", response.data.message || "Unknown error");
+         
+          toast.error(response.data.message );
         }
       } catch (err) {
         console.error("Error fetching subcategories:", err);
-        setError("Failed to fetch subcategories.");
-        toast.error("Failed to fetch subcategories.");
+       
+        toast.error(
+          err.response?.data?.message || "An unexpected error occurred. Please try again."
+        );
       }
     };
+    
 
     const fetchProducts = async () => {
       try {
@@ -180,50 +186,50 @@ const Categorypage = ({ handleLogout, userdata }) => {
       <section className="section-b-space shop-section">
         <div className="container-fluid-lg">
           <div className="row">
-            <div className="col-custom-3">
-              <div className="left-box wow fadeInUp">
-                <div className="shop-left-sidebar">
-                  <ul
-                    className="nav nav-pills mb-3 custom-nav-tab"
-                    id="pills-tab"
-                    role="tablist"
-                  >
-                    {error ? (
-                      <li className="nav-item">Error: {error}</li>
-                    ) : subcategories.length === 0 ? (
-                      <li className="no-categories-message">
-                      <div className="alert alert-warning text-center">
-                        <strong>No subcategory available</strong>
-                      </div>
-                    </li>
-                    ) : (
-                      subcategories.map((subcategory) => (
-                        <li
-                          className="nav-item"
-                          role="presentation"
-                          key={subcategory.sub_category_id}
-                        >
-                          <Link
-                            className="nav-link"
-                            to="/productpage"
-                            state={{
-                              subCategoryId: subcategory.sub_category_id,
-                              subCategoryName: subcategory.sub_category_name,
-                            }}
-                          >
-                            {subcategory.sub_category_name}
-                            <i
-                              className="fa-solid fa-angle-right"
-                              style={{ marginLeft: "10px" }}
-                            ></i>
-                          </Link>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              </div>
-            </div>
+          <div className="col-custom-3">
+  <div className="left-box wow fadeInUp">
+    <div className="shop-left-sidebar">
+      <ul
+        className="nav nav-pills mb-3 custom-nav-tab"
+        id="pills-tab"
+        role="tablist"
+      >
+        {subcategories.length === 0 ? (
+         <li className="nav-item d-flex justify-content-center align-items-center">
+         <strong className="row-custom-3 mt-2 text-center">
+           No subcategory available
+         </strong>
+       </li>
+       
+        
+        ) : (
+          subcategories.map((subcategory) => (
+            <li
+              className="nav-item"
+              role="presentation"
+              key={subcategory.sub_category_id}
+            >
+              <Link
+                className="nav-link"
+                to="/productpage"
+                state={{
+                  subCategoryId: subcategory.sub_category_id,
+                  subCategoryName: subcategory.sub_category_name,
+                }}
+              >
+                {subcategory.sub_category_name}
+                <i
+                  className="fa-solid fa-angle-right"
+                  style={{ marginLeft: "10px" }}
+                ></i>
+              </Link>
+            </li>
+          ))
+        )}
+      </ul>
+    </div>
+  </div>
+</div>
 
             <div className="col-custom-">
               <div className="row g-sm-4 g-3 row-cols-xxl-4 row-cols-xl-3 row-cols-lg-2 row-cols-md-3 row-cols-2 product-list-section">

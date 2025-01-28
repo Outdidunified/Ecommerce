@@ -214,8 +214,8 @@ const ViewProduct = ({ handleLogout, adminData }) => {
         // Successfully toggled the product status
         const statusMessage =
           newStatus === 1
-            ? "Product restored successfully!"
-            : "Product deleted successfully!";
+            ? "Product Activated successfully!"
+            : "Product Deactivated successfully!";
         toast.success(statusMessage);
 
         // Update the UI by modifying the product status
@@ -327,8 +327,8 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                                         }}
                                       >
                                         {product.status === 1
-                                          ? "Available"
-                                          : "Out of Stock"}
+                                          ? "Active"
+                                          : "Inactive"}
                                       </span>
                                     </td>
                                     <td>

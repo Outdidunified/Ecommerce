@@ -204,9 +204,13 @@ const Productpage = ({ handleLogout, userdata }) => {
                        </div>
                      ))
                    ) : (
-                     <div className="alert alert-warning text-center">
-                       <strong>No Products available</strong>
-                     </div>
+                    <div className="no-products-container text-center">
+      <div className="no-products-message">
+        <i className="fa-solid fa-box-open"></i>
+        <h4>No products available</h4>
+        <p>Please check back later or explore other categories.</p>
+      </div>
+    </div>
                    )}
                  </div>
             
