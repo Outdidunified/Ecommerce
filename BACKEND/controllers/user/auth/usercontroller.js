@@ -230,11 +230,18 @@ exports.getUserOrderAndDetails = (req, res) => {
       u.pincode, 
       u.country, 
       u.state,
-      COUNT(DISTINCT CASE WHEN o.status NOT IN ('Cancelled', 'Pending') AND o.status IS NOT NULL THEN o.order_id END) AS total_orders, 
-      COUNT(CASE WHEN o.status = 'Pending' THEN 1 ELSE NULL END) AS pending_orders,
+      COUNT(DISTINCT CASE 
+        WHEN o.status IN ('Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered') THEN o.order_id
+        ELSE NULL 
+      END) AS total_orders,  -- Count only valid orders
+      COUNT(DISTINCT CASE 
+        WHEN p.payment_status = 'Incomplete' THEN o.order_id  -- Count orders with 'Incomplete' payment status (regardless of order status)
+        ELSE NULL 
+      END) AS pending_orders,  -- Count all orders with 'Incomplete' payment status
       COUNT(DISTINCT c.cart_id) AS total_cart_items  -- Counting distinct cart items for the user
     FROM users u
     LEFT JOIN orders o ON u.user_id = o.user_id
+    LEFT JOIN payments p ON o.order_id = p.order_id  -- Join with payments to check payment status
     LEFT JOIN cart c ON u.user_id = c.user_id
     WHERE u.user_id = ?
     GROUP BY u.user_id
@@ -253,7 +260,7 @@ exports.getUserOrderAndDetails = (req, res) => {
     // Respond with the user details, order summary, and cart details
     res.status(200).json({
       message: 'User details, order summary, and cart items fetched successfully',
-      user_summary: result[0], // Contains user details, total_orders, pending_orders, and total_cart_items
+      user_summary: result[0], // Contains user details, total_orders, incomplete_orders, and total_cart_items
     });
   });
 };
