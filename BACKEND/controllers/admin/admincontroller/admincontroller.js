@@ -73,7 +73,7 @@ exports.signin = (req, res) => {
     if (password !== user.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-      //data
+      
     // Fetch the role name for the user from the 'roles' table using the role_id
     db.query('SELECT role_name FROM roles WHERE role_id = ?', [user.role_id], (err, roleResult) => {
       if (err) return res.status(500).json({ message: 'Database error', error: err });
