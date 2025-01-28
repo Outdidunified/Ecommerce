@@ -23,7 +23,7 @@ const AddProduct = ({ handleLogout, adminData }) => {
   const [productDescription, setProductDescription] = useState("");
 
   const [image1, setImage1] = useState(null);
-  const [image2, setImage2] = useState(null);
+  const [image2, ] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
   const navigate = useNavigate(); // Initialize useNavigate for page redirection
@@ -380,7 +380,7 @@ const AddProduct = ({ handleLogout, adminData }) => {
                               </div>
                             </div>
 
-                            {/* Image 2 */}
+                            {/* Image 2
                             <div className="mb-4 row align-items-center">
                               <label className="form-label-title col-sm-3 mb-0">
                                 Image 2 (JPG/PNG)
@@ -393,7 +393,7 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                   className="form-control"
                                 />
                               </div>
-                            </div>
+                            </div> */}
 
                             {/* Submit Button */}
                             <div className="row justify-content-center mt-4">
