@@ -56,6 +56,10 @@ const db=require('../../../config/db');
         console.error('Error fetching subcategories:', err.message);
         return res.status(500).send({ message: 'Error fetching subcategories', error: err.message });
       }
+
+      if (results.length === 0) {
+        return res.status(400).send({ message: 'No subcategories found' });
+      }
   
       console.log('Subcategories fetched:', results);
   
@@ -89,6 +93,7 @@ const db=require('../../../config/db');
         FROM product p
         JOIN main_categor c ON p.category_id = c.category_id
         JOIN sub_categor s ON p.sub_category_id = s.sub_category_id
+        WHERE p.status = 1  -- Filter products where status = 1
         ORDER BY p.created_date ASC, p.product_id ASC;  -- Sort by created_date ascending (newer products last), and product_id for tie-breaking
     `;
 
