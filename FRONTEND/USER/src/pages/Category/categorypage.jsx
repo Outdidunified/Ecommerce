@@ -231,93 +231,100 @@ const Categorypage = ({ handleLogout, userdata }) => {
   </div>
 </div>
 
-            <div className="col-custom-">
-              <div className="row g-sm-4 g-3 row-cols-xxl-4 row-cols-xl-3 row-cols-lg-2 row-cols-md-3 row-cols-2 product-list-section">
-                {products.map((product) => (
-                  <div key={product.product_id}>
-                    <div className="product-box-3 h-100 wow fadeInUp">
-                      <div className="product-header">
-                        <div className="product-image">
-                          <Link
-                            to="/viewproducts"
-                            state={{
-                              product,
-                            }}
-                          >
-                            <img
-                              src={product.image}
-                              className="img-fluid blur-up lazyload"
-                              alt={product.product_name}
-                            />
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="product-footer">
-                        <div className="product-detail">
-                          <span className="span-name">
-                            {product.category_name}
-                          </span>
-                          <Link
-                            to="/viewproducts"
-                            state={{
-                              product,
-                            }}
-                          >
-                            <h5 className="name">{product.product_name}</h5>
-                          </Link>
-                          <p className="text-content mt-1 mb-2 product-content">
-                            {product.description}
-                          </p>
-                          <h6 className="unit">{product.unit}</h6>
-                          <h5 className="price">
-                            <span className="theme-color">
-                              Rs.{product.price}
-                            </span>{" "}
-                           
-                          </h5>
-                          <div className="add-to-cart-box bg-white">
-                            <button className="btn btn-add-cart addcart-button"
-                            onClick={() => handleClick(product)} // Pass the product object
-                            >
-                              Add
-                              <span className="add-icon bg-light-gray">
-                                <i className="fa-solid fa-plus"></i>
-                              </span>
-                            </button>
-                            <div className="cart_qty qty-box">
-                              <div className="input-group bg-white">
-                                <button
-                                  type="button"
-                                  className="qty-left-minus bg-gray"
-                                  data-type="minus"
-                                  data-field=""
-                                >
-                                  <i className="fa fa-minus"></i>
-                                </button>
-                                <input
-                                  className="form-control input-number qty-input"
-                                  type="text"
-                                  name="quantity"
-                                  value="0"
-                                />
-                                <button
-                                  type="button"
-                                  className="qty-right-plus bg-gray"
-                                  data-type="plus"
-                                  data-field=""
-                                >
-                                  <i className="fa fa-plus"></i>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+<div className="col-custom-">
+  {products.length > 0 ? (
+    <div className="row g-sm-4 g-3 row-cols-xxl-4 row-cols-xl-3 row-cols-lg-2 row-cols-md-3 row-cols-2 product-list-section">
+      {products.map((product) => (
+        <div key={product.product_id}>
+          <div className="product-box-3 h-100 wow fadeInUp">
+            <div className="product-header">
+              <div className="product-image">
+                <Link
+                  to="/viewproducts"
+                  state={{
+                    product,
+                  }}
+                >
+                  <img
+                    src={product.image}
+                    className="img-fluid blur-up lazyload"
+                    alt={product.product_name}
+                  />
+                </Link>
               </div>
             </div>
+            <div className="product-footer">
+              <div className="product-detail">
+                <span className="span-name">{product.category_name}</span>
+                <Link
+                  to="/viewproducts"
+                  state={{
+                    product,
+                  }}
+                >
+                  <h5 className="name">{product.product_name}</h5>
+                </Link>
+                <p className="text-content mt-1 mb-2 product-content">
+                  {product.description}
+                </p>
+                <h6 className="unit">{product.unit}</h6>
+                <h5 className="price">
+                  <span className="theme-color">Rs.{product.price}</span>
+                </h5>
+                <div className="add-to-cart-box bg-white">
+                  <button
+                    className="btn btn-add-cart addcart-button"
+                    onClick={() => handleClick(product)} // Pass the product object
+                  >
+                    Add
+                    <span className="add-icon bg-light-gray">
+                      <i className="fa-solid fa-plus"></i>
+                    </span>
+                  </button>
+                  <div className="cart_qty qty-box">
+                    <div className="input-group bg-white">
+                      <button
+                        type="button"
+                        className="qty-left-minus bg-gray"
+                        data-type="minus"
+                        data-field=""
+                      >
+                        <i className="fa fa-minus"></i>
+                      </button>
+                      <input
+                        className="form-control input-number qty-input"
+                        type="text"
+                        name="quantity"
+                        value="0"
+                      />
+                      <button
+                        type="button"
+                        className="qty-right-plus bg-gray"
+                        data-type="plus"
+                        data-field=""
+                      >
+                        <i className="fa fa-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="no-products-container text-center">
+      <div className="no-products-message">
+        <i className="fa-solid fa-box-open"></i> {/* Optional icon */}
+        <h4>No products available</h4>
+        <p>Please check back later or explore other categories.</p>
+      </div>
+    </div>
+  )}
+</div>
+
           </div>
         </div>
       </section>
