@@ -33,7 +33,7 @@ const Home = ({ handleLogout, userdata }) => {
               : response.data.products || [];
             
             setProducts(fetchedProducts);
-            toast.success("Products fetched successfully!"); // Success toast for products
+            
           } catch (err) {
             setError(err.response.data.message);
 
@@ -50,14 +50,14 @@ const Home = ({ handleLogout, userdata }) => {
               // Success case
               if (Array.isArray(response.data.categories)) {
                 setCategories(response.data.categories);
-                toast.success("Categories fetched successfully!"); // Success toast for categories
+               
               } 
             }
           } catch (err) {
             if (err.response && err.response.status === 400) {
               // Handle specific 400 status in catch
-              const backendMessage = err.response.data.message;
-              toast.error( backendMessage); // Toast error for 400 status
+              // const backendMessage = err.response.data.message;
+              // toast.error( backendMessage); // Toast error for 400 status
             } else {
               // Handle other errors
               console.error("Error fetching categories:", err);
@@ -77,74 +77,71 @@ const Home = ({ handleLogout, userdata }) => {
         return () => clearTimeout(timer);
       }, [fetchCartItems]);
       
-  const handleClick = async (product) => {
-    const storedToken = localStorage.getItem("authToken"); // Get the token from localStorage
-
-    // Check if the user is logged in
-    if (!isLoggedIn) {
-      toast.info(
-        <div>
-          <span>Please log in to add products to your cart.</span>
-          <button
-            style={{
-              marginLeft: "10px",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "red",
-            }}
-            onClick={() => navigate("/login")}
-          >
-            Log In to continue
-          </button>
-        </div>,
-        {
-          position: "top-center",
-          autoClose: false, // Don't auto close
-          closeButton: false, // Hide default close button
-        }
-      );
-      return; // Stop the execution here if the user is not logged in
-    }
-
-    try {
-      // Sending POST request to add product to the cart with the token in the headers
-      const response = await axios.post(
-        "/cart/addtocart",
-        {
-          user_id: "21", // Replace with actual user ID
-          product_id: product.product_id, // Product ID from the product object
-          quantity: quantity, // Quantity from the state
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${storedToken}`, // Send token in Authorization header
-          },
-        }
-      );
-
-      // Handle success response if needed
-      console.log("Product added to cart:", response.data);
+      const handleClick = async (product) => {
+        const storedToken = localStorage.getItem("authToken"); // Get the token from localStorage
       
-      fetchCartItems(); // This will trigger an update for the cart count
-
-     
-
-      // Show success toast notification
-      toast.success("Product added to cart successfully!", {
-        position: "top-center",
-        autoClose: 3000, // Auto-close after 3 seconds
-      });
-    } catch (error) {
-      console.error("Error adding product to cart:", error);
-
-      // Show error toast notification
-      toast.error("Product already added to cart", {
-        position: "top-center",
-        autoClose: 3000, // Auto-close after 3 seconds
-      });
-    }
-  };
+        // Check if the user is logged in
+        if (!isLoggedIn) {
+          toast.info(
+            <div>
+              <span>Please log in to add products to your cart.</span>
+              <button
+                style={{
+                  marginLeft: "10px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "red",
+                }}
+                onClick={() => navigate("/login")}
+              >
+                Log In to continue
+              </button>
+            </div>,
+            {
+              position: "top-center",
+              autoClose: false, // Don't auto close
+              closeButton: false, // Hide default close button
+            }
+          );
+          return; // Stop the execution here if the user is not logged in
+        }
+      
+        try {
+          // Sending POST request to add product to the cart with the token in the headers
+          const response = await axios.post(
+            "/cart/addtocart",
+            {
+              user_id: "21", // Replace with actual user ID
+              product_id: product.product_id, // Product ID from the product object
+              quantity: quantity, // Quantity from the state
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${storedToken}`, // Send token in Authorization header
+              },
+            }
+          );
+      
+          // Handle success response if needed
+          console.log("Product added to cart:", response.data);
+          fetchCartItems(); 
+      
+          // Show success toast notification
+          toast.success("Product added to cart successfully!", {
+            position: "top-center",
+            autoClose: 3000, // Auto-close after 3 seconds
+          });
+        } catch (error) {
+          console.error("Error adding product to cart:", error);
+      
+          // Show error toast notification
+          toast.error("Product already added to cart", {
+            position: "top-center",
+            autoClose: 3000, // Auto-close after 3 seconds
+          });
+        }
+      };
 
   const limitedProducts = products.slice(0, 15);
 

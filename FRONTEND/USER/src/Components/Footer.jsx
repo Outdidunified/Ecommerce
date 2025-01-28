@@ -23,8 +23,8 @@ const Footer = () => {
       } catch (err) {
         if (err.response && err.response.status === 400) {
           // Handle specific 400 status in catch
-          const backendMessage = err.response.data.message;
-          toast.error(backendMessage);
+          // const backendMessage = err.response.data.message;
+          // toast.error(backendMessage);
         } else {
           // Handle other errors
           console.error("Error fetching categories:", err);
