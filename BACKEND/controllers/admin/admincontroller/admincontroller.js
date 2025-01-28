@@ -50,60 +50,65 @@ exports.signin = (req, res) => {
   const { email_id, password } = req.body;
   console.log(req.body);
 
+  // Ensure that both email and password are provided in the request body
   if (!email_id || !password) {
     return res.status(400).json({ message: 'Email and password are required' });
   }
 
-  // Check if the user exists in the 'users' table
+  // Check if the user exists in the 'users' table by querying the email
   db.query('SELECT * FROM users WHERE email_id = ?', [email_id], (err, result) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
 
+    // If no user is found with the provided email, return a 404 error
     if (result.length === 0) return res.status(404).json({ message: 'User not found' });
 
     const user = result[0];
 
-    // Check if the user's account is active (active = 1)
+    // Check if the user's account is active (active = 1). If not, return an error
     if (user.active === 0) {
       return res.status(403).json({ message: 'Your account is deactivated' });
     }
 
-    // Check if password is correct
+    // Check if the provided password matches the one stored in the database
     if (password !== user.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Fetch role name for the user from roles table based on role_id
+    // Fetch the role name for the user from the 'roles' table using the role_id
     db.query('SELECT role_name FROM roles WHERE role_id = ?', [user.role_id], (err, roleResult) => {
       if (err) return res.status(500).json({ message: 'Database error', error: err });
 
+      // If the role is not found for the user, return an error
       if (roleResult.length === 0) {
         return res.status(400).json({ message: 'Role not found for user' });
       }
 
       const role_name = roleResult[0].role_name;
 
-      // Create JWT token
+      // Generate a JWT token containing the user's ID and role ID to authenticate future requests
       const token = jwt.sign(
         { user_id: user.user_id, role: user.role_id },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET // JWT secret should be stored securely in the environment variables
       );
 
-      console.log('JWT Token:', token); // Log the token
+      console.log('JWT Token:', token); // Log the token for debugging purposes
 
+      // Send a response with a success message, the generated JWT token, and user information
       res.status(200).json({
         message: 'Sign in successful',
-        token,
+        token, // The generated JWT token will be used for authentication in subsequent API calls
         user_id: user.user_id,
         username: user.username,
-        password: user.password,
+        password: user.password, // Note: Returning password in the response is not recommended for security reasons
         email_id: user.email_id,
         role_name: role_name,
         role_id: user.role_id,
-        user_type: user.user_type,
+        user_type: user.user_type, // Include the user type (if needed for the frontend)
       });
     });
   });
 };
+
 
 
 exports.updateSettings = (req, res) => {
