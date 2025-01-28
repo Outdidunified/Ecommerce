@@ -2,11 +2,11 @@ const db=require('../../../config/db');
 
 exports.getAllOrdersForAdmin = (req, res) => {
   const query = `
-    SELECT 
+    SELECT
       o.order_id,
       o.total_price,
       o.status AS order_status,
-      o.created_date, 
+      o.created_date,
       o.tracking_code,
       o.expected_delivery_date,
       p.payment_status,
@@ -35,15 +35,20 @@ exports.getAllOrdersForAdmin = (req, res) => {
     JOIN delivery_address d ON o.order_id = d.order_id
     JOIN order_items oi ON o.order_id = oi.order_id
     JOIN users u ON o.user_id = u.user_id
+    WHERE p.payment_status != 'Pending' -- Exclude orders with "Pending" payment status
     GROUP BY o.order_id;
   `;
 
   db.query(query, (err, result) => {
     if (err) {
+      console.error('Database query error:', err); // Log the error
       return res.status(500).json({ error: 'Failed to fetch orders for admin', details: err });
     }
 
+    console.log('Raw result from database:', result); // Log the raw result from the database
+
     if (result.length === 0) {
+      console.log('No orders found');
       return res.status(404).json({ error: 'No orders found' });
     }
 
@@ -91,7 +96,7 @@ exports.getAllOrdersForAdmin = (req, res) => {
         items: order.items ? JSON.parse(`[${order.items}]`) : [],
       };
 
-      if (order.order_status === 'Pending' || order.order_status === 'Canceled') {
+      if (order.order_status === 'Canceled') {
         delete orderResponse.expected_delivery_date;
       }
 
@@ -107,12 +112,17 @@ exports.getAllOrdersForAdmin = (req, res) => {
       return orderResponse;
     });
 
+    console.log('Parsed result:', parsedResult); // Log the parsed result
+
     res.status(200).json({
       message: 'All orders fetched successfully',
       orders: parsedResult,
     });
   });
 };
+
+
+
 
 exports.updateOrderStatusByAdmin = (req, res) => {
   const { order_id, status, expected_delivery_date, modified_by } = req.body;
@@ -210,18 +220,26 @@ exports.updateOrderStatusByAdmin = (req, res) => {
 };
 
 exports.getAllOrdersSummary = (req, res) => {
-  // Query to fetch the total orders, pending orders, customer count, and total products without filters
+  // Query to fetch the total orders, pending orders, customer count, and total products
   const query = `
     SELECT 
-      COUNT(DISTINCT o.order_id) AS total_orders,  -- Count all orders
-      COUNT(CASE WHEN o.status = 'Pending' THEN 1 ELSE NULL END) AS pending_orders,  -- Count pending orders
+      COUNT(DISTINCT CASE 
+        WHEN o.status IN ('Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered') THEN o.order_id  -- Count only valid order statuses
+        ELSE NULL 
+      END) AS total_orders,  -- Count all valid orders
+      COUNT(DISTINCT CASE 
+        WHEN p.payment_status = 'Incomplete' THEN o.order_id  -- Only count orders with 'Incomplete' payment status
+        ELSE NULL 
+      END) AS pending_orders,  -- Count pending orders where payment is 'Incomplete'
       COUNT(DISTINCT CASE 
         WHEN u.role_id = 1 THEN u.user_id  -- Count all customers with role_id = 1
         ELSE NULL 
-      END) AS total_customers,  -- Count all customers regardless of status
+      END) AS total_customers,  -- Count all customers
       (SELECT COUNT(*) FROM product) AS total_products  -- Count all products
     FROM users u
     LEFT JOIN orders o ON u.user_id = o.user_id
+    LEFT JOIN payments p ON o.order_id = p.order_id  -- Join with payments to check payment status
+    WHERE o.order_id IS NOT NULL  -- Exclude cart-related rows or non-order entries
   `;
 
   db.query(query, (err, result) => {
@@ -241,3 +259,7 @@ exports.getAllOrdersSummary = (req, res) => {
     });
   });
 };
+
+
+
+
