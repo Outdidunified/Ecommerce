@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "../../Components/Header";
@@ -10,40 +10,37 @@ import Mobileview from "../../Components/Mobileview";
 const Viewproducts = ({ handleLogout, userdata }) => {
   const location = useLocation();
   const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const { product } = location.state || {}; // Access the product data from the state
 
+  useEffect(() => {
+    // Set a timeout to stop the loader after 2 seconds
+    const timer = setTimeout(() => {
+      setIsLoading(false); // Hide loader and show content
+    }, 1000); // 1 second delay
 
-
-
-    useEffect(() => {
-      // Set a timeout to stop the loader after 2 seconds
-      const timer = setTimeout(() => {
-        setIsLoading(false); // Hide loader and show content
-      }, 1000); // 1 second delay
-  
-      // Cleanup the timeout on component unmount
-      return () => clearTimeout(timer);
-    }, []);
+    // Cleanup the timeout on component unmount
+    return () => clearTimeout(timer);
+  }, []);
 
   // State to manage quantity
-  const [quantity, setQuantity] = useState(1); // Default quantity is 1
+  const [quantity] = useState(1); // Default quantity is 1
 
   // Map 1/0 to "Yes" or "No" for exchangable and refundable
   // const isExchangable = product.exchangable === 1 ? 'Yes' : 'No';
   // const isRefundable = product.refundable === 1 ? 'Yes' : 'No';
 
-  // Handle quantity change
-  const handleQuantityChange = (event) => {
-    const value = parseInt(event.target.value, 10);
-    if (value > 0) {
-      setQuantity(value); // Only update if the value is greater than 0
-    }
-  };
+  // // Handle quantity change
+  // const handleQuantityChange = (event) => {
+  //   const value = parseInt(event.target.value, 10);
+  //   if (value > 0) {
+  //     setQuantity(value); // Only update if the value is greater than 0
+  //   }
+  // };
 
-  // Handle increment and decrement
-  const handleIncrement = () => setQuantity(prev => prev + 1);
-  const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1)); // Prevent going below 1
+  // // Handle increment and decrement
+  // const handleIncrement = () => setQuantity(prev => prev + 1);
+  // const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1)); // Prevent going below 1
 
   const handleClick = async (product) => {
     const storedToken = localStorage.getItem("authToken"); // Get the token from localStorage
@@ -114,7 +111,7 @@ const Viewproducts = ({ handleLogout, userdata }) => {
   return (
     <div>
       {isLoading ? (
-          <div className="fullpage-loader">
+        <div className="fullpage-loader">
           <span></span>
           <span></span>
           <span></span>
@@ -124,82 +121,80 @@ const Viewproducts = ({ handleLogout, userdata }) => {
         </div>
       ) : (
         <>
-        <Header handleLogout={handleLogout} userdata={userdata} />
-        <Mobileview userdata={userdata}/>
+          <Header handleLogout={handleLogout} userdata={userdata} />
+          <Mobileview userdata={userdata} />
 
-<div className="mobile-menu d-md-none d-block mobile-cart">
-  {/* Your mobile menu */}
-</div>
+          <div className="mobile-menu d-md-none d-block mobile-cart">
+            {/* Your mobile menu */}
+          </div>
 
-<section className="breadcrumb-section pt-0">
-  <div className="container-fluid-lg">
-    <div className="row">
-      <div className="col-12">
-        <div className="breadcrumb-contain">
-          <h2>{product.product_name}</h2>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-{/* Product Left Sidebar Start */}
-<section className="product-section">
-  <div className="container-fluid-lg">
-    <div className="row">
-      <div className="col-xxl-9 col-xl-8 col-lg-7 wow fadeInUp">
-        <div className="row g-4">
-          <div className="col-xl-6 wow fadeInUp">
-            <div className="product-left-box">
-              <div className="row g-sm-4 g-2">
+          <section className="breadcrumb-section pt-0">
+            <div className="container-fluid-lg">
+              <div className="row">
                 <div className="col-12">
-                  <div className="product-main no-arrow">
-                    <div>
-                      <div className="slider-image mb-5">
-                      <img
-                    src={
-                      product.image &&
-                      product.image !== "/uploads/null"
-                        ? product.image
-                        : "/images/placeholder.jpg"
-                    }
-                    alt={
-                      product.product_name ||
-                      "Product image"
-                    }
-                    className="img-fluid"
-                   
-                  />
-                      </div>
-                    </div>
+                  <div className="breadcrumb-contain">
+                    <h2>{product.product_name}</h2>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="col-xl-6 wow fadeInUp">
-            <div className="right-box-contain">
-              <h2 className="name">{product.product_name}</h2>
-              <div className="price-rating">
-                <h3 className="theme-color price">
-                  Rs.{product.price}
-                </h3>
-              </div>
+          {/* Product Left Sidebar Start */}
+          <section className="product-section">
+            <div className="container-fluid-lg">
+              <div className="row">
+                <div className="col-xxl-9 col-xl-8 col-lg-7 wow fadeInUp">
+                  <div className="row g-4">
+                    <div className="col-xl-6 wow fadeInUp">
+                      <div className="product-left-box">
+                        <div className="row g-sm-4 g-2">
+                          <div className="col-12">
+                            <div className="product-main no-arrow">
+                              <div>
+                                <div className="slider-image mb-5">
+                                  <img
+                                    src={
+                                      product.image &&
+                                      product.image !== "/uploads/null"
+                                        ? product.image
+                                        : "/images/placeholder.jpg"
+                                    }
+                                    alt={
+                                      product.product_name || "Product image"
+                                    }
+                                    className="img-fluid"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="product-contain">
-                <p className="w-100">{product.description}</p>
-              </div>
+                    <div className="col-xl-6 wow fadeInUp">
+                      <div className="right-box-contain">
+                        <h2 className="name">{product.product_name}</h2>
+                        <div className="price-rating">
+                          <h3 className="theme-color price">
+                            Rs.{product.price}
+                          </h3>
+                        </div>
 
-              {/* <div className="product-package">
+                        <div className="product-contain">
+                          <p className="w-100">{product.description}</p>
+                        </div>
+
+                        {/* <div className="product-package">
                 <div className="product-title">
                   <p><strong>Is Exchangable:</strong> {isExchangable}</p>
                   <p><strong>Is Refundable:</strong> {isRefundable}</p>
                 </div>
               </div> */}
 
-              <div className="note-box product-package">
-                <div className="cart_qty qty-box product-qty">
+                        <div className="note-box product-package">
+                          {/* <div className="cart_qty qty-box product-qty">
                   <div className="input-group">
                     <button
                       type="button"
@@ -223,27 +218,26 @@ const Viewproducts = ({ handleLogout, userdata }) => {
                       <i className="fa fa-plus"></i>
                     </button>
                   </div>
-                </div>
+                </div> */}
 
-                <button
-                  onClick={() => handleClick(product)}
-                  className="btn btn-md bg-dark cart-button text-white w-100"
-                >
-                  Add To Cart
-                </button>
+                          <button
+                            onClick={() => handleClick(product)}
+                            className="btn btn-md bg-dark cart-button text-white w-100"
+                          >
+                            Add To Cart
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<ToastContainer />
-<Footer className="section-t-space" />
+          </section>
+          <ToastContainer />
+          <Footer className="section-t-space" />
         </>
       )}
-      
     </div>
   );
 };

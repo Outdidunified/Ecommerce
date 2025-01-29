@@ -144,6 +144,7 @@ const Register = () => {
                           id="password"
                           placeholder="Password"
                           value={formData.password}
+                          maxLength={15} // Enforces the limit at the input level
                           onChange={handleInputChange}
                           required
                         />

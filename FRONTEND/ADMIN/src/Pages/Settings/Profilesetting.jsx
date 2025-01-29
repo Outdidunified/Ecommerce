@@ -213,27 +213,29 @@ const Profilesetting = ({ handleLogout, adminData }) => {
                               </div>
 
 
-                              {/* Password Field */}
-                              <div className="mb-4 row align-items-center">
-                                <label className="form-label-title col-sm-2 mb-0">
-                                  Password
-                                </label>
-                                <div className="col-sm-10">
-                                  <input
-                                    className="form-control"
-                                    type="text" // Always show password in plain text
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Password"
-                                    style={{
-                                      border: "2px solid green", // Green border for editable fields
-                                    }}
-                                  />
-                                  {passwordError && (
-                                    <div className="text-danger">{passwordError}</div>
-                                  )}
-                                </div>
-                              </div>
+                             {/* Password Field */}
+<div className="mb-4 row align-items-center">
+  <label className="form-label-title col-sm-2 mb-0">Password</label>
+  <div className="col-sm-10">
+    <input
+      className="form-control"
+      type="text" // Always show password in plain text
+      value={password}
+      onChange={(e) => {
+        if (e.target.value.length <= 15) {
+          setPassword(e.target.value);
+        }
+      }}
+      placeholder="Password"
+      maxLength={15} // Restrict input to 15 characters
+      style={{
+        border: "2px solid green", // Green border for editable fields
+      }}
+    />
+    {passwordError && <div className="text-danger">{passwordError}</div>}
+  </div>
+</div>
+
                             </div>
 
                             <div className="row justify-content-center mt-4">

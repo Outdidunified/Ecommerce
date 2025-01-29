@@ -83,7 +83,7 @@ const Dashboard = ({ handleLogout, token, adminData }) => {
                                         <div className="custome-2-bg b-r-4 card-body">
                                             <div className="media static-top-widget">
                                                 <div className="media-body p-0">
-                                                    <span className="m-0"> Payment Pending Orders</span>
+                                                    <span className="m-0"> Payment Failure Orders</span>
                                                     <h4 className="mb-0 counter">
                                                         {orderSummary.pending_orders}
                                                     </h4>

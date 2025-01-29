@@ -186,6 +186,7 @@ const Login = ({ handleLogin }) => {
                     id="password"
                     placeholder="Password"
                     value={password}
+                    maxLength={15} // Enforces the limit at the input level
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />

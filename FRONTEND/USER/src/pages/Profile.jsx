@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Header from '../Components/Header'
-import Footer from '../Components/Footer'
+import Header from "../Components/Header";
+import Footer from "../Components/Footer";
 import { ToastContainer, toast } from "react-custom-alert";
 import { useNavigate } from "react-router-dom";
 import "react-custom-alert/dist/index.css";
 import Mobileview from "../Components/Mobileview";
 
 const Profile = ({ handleLogout, userdata }) => {
-
   const [isLoading, setIsLoading] = useState(true);
   const [, setLoading] = useState(true);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [, setError] = useState(null);
   const user_id = userdata.user_id; // Ensure userdata.user_id is available
 
- 
   const [username, setUsername] = useState(""); // Manage username separately
   const [username1, setUsername1] = useState(""); // Manage username separately
 
@@ -27,31 +25,26 @@ const Profile = ({ handleLogout, userdata }) => {
   const [state, setstate] = useState(""); // Manage username separately
   const [email_id, setemail_id] = useState(""); // Manage username separately
   const [total_orders, settotal_orders] = useState(""); // Manage username separately
-  const [pending_orders, setpending_orders] = useState(""); // Manage username separately
+  // const [pending_orders, setpending_orders] = useState(""); // Manage username separately
   const [total_cart_items, settotal_cart_items] = useState(""); // Manage username separately
 
-
-  
-
-
   useEffect(() => {
-  
     // Fetch user details function
     const fetchUserDetails = async () => {
       try {
         const response = await axios.get(`/user/getUserDetails/${user_id}`);
-        const details = (response.data.user_summary);
-        setUsername(details.username)
-        setUsername1(details.username)
-        setphone(details.phone)
-        setaddress(details.address)
-        setpincode(details.pincode)
-        setcountry(details.country)
-        setstate(details.state)
-        setemail_id(details.email_id)
-        settotal_orders(details.total_orders)
-        setpending_orders(details.pending_orders)
-        settotal_cart_items(details.total_cart_items)
+        const details = response.data.user_summary;
+        setUsername(details.username);
+        setUsername1(details.username);
+        setphone(details.phone);
+        setaddress(details.address);
+        setpincode(details.pincode);
+        setcountry(details.country);
+        setstate(details.state);
+        setemail_id(details.email_id);
+        settotal_orders(details.total_orders);
+        // setpending_orders(details.pending_orders)
+        settotal_cart_items(details.total_cart_items);
       } catch (err) {
         console.error("Error fetching user details:", err);
         setError("Failed to fetch user details");
@@ -70,53 +63,53 @@ const Profile = ({ handleLogout, userdata }) => {
     return () => clearTimeout(timer);
   }, [user_id]); // Re-run only when user_id changes
 
+  const handleSubmit = async (e, fetchUserDetails) => {
+    e.preventDefault();
 
-
-
-const handleSubmit = async (e,fetchUserDetails) => {
-  e.preventDefault();
-
-  try {
-    const response = await axios.put(
-      "/user/update",
-      {
-        username: username,
-        phone: phone,
-        address: address,
-        pincode: pincode,
-        country: country,
-        state: state,
-        user_id: userdata.user_id,
-        modified_by: userdata.user_name,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+    try {
+      const response = await axios.put(
+        "/user/update",
+        {
+          username: username,
+          phone: phone,
+          address: address,
+          pincode: pincode,
+          country: country,
+          state: state,
+          user_id: userdata.user_id,
+          modified_by: userdata.user_name,
         },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("User details updated successfully!");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        toast.error("Failed to update user details.");
       }
-    );
+    } catch (error) {
+      console.error("Error updating user details:", error);
 
-    if (response.status === 200) {
-      toast.success("User details updated successfully!");
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    } else {
-      toast.error("Failed to update user details.");
+      // Display the backend error message if available
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(`Error: ${error.response.data.message}`);
+      } else {
+        // Generic error message
+        toast.error("An error occurred while updating user details.");
+      }
     }
-  } catch (error) {
-    console.error("Error updating user details:", error);
-
-    // Display the backend error message if available
-    if (error.response && error.response.data && error.response.data.message) {
-      toast.error(`Error: ${error.response.data.message}`);
-    } else {
-      // Generic error message
-      toast.error("An error occurred while updating user details.");
-    }
-  }
-};
-
+  };
 
   return (
     <div>
@@ -133,7 +126,7 @@ const handleSubmit = async (e,fetchUserDetails) => {
         <>
           <Header handleLogout={handleLogout} userdata={userdata} />
           {/* mobile fix menu start */}
-       <Mobileview userdata={userdata}/>
+          <Mobileview userdata={userdata} />
           {/* mobile fix menu end */}
 
           {/* Breadcrumb Section Start */}
@@ -232,8 +225,7 @@ const handleSubmit = async (e,fetchUserDetails) => {
 
                           <div class="dashboard-user-name">
                             <h6 class="text-content">
-                              Hello,{" "}
-                              <b class="text-title">{username1}</b>
+                              Hello, <b class="text-title">{username1}</b>
                             </h6>
                             <p class="text-content">
                               From your Dashboard you have the ability to view a
@@ -263,7 +255,7 @@ const handleSubmit = async (e,fetchUserDetails) => {
                                   </div>
                                 </div>
                               </div>
-
+                              {/* 
                               <div class="col-xxl-4 col-lg-6 col-md-4 col-sm-6">
                                 <div class="total-contain">
                                   <img
@@ -281,7 +273,7 @@ const handleSubmit = async (e,fetchUserDetails) => {
                                     <h3>{pending_orders}</h3>
                                   </div>
                                 </div>
-                              </div>
+                              </div> */}
 
                               <div class="col-xxl-4 col-lg-6 col-md-4 col-sm-6">
                                 <div class="total-contain">
@@ -297,9 +289,7 @@ const handleSubmit = async (e,fetchUserDetails) => {
                                   />
                                   <div className="total-detail">
                                     <h5>Total Cart items</h5>
-                                    <h3>
-                                      {total_cart_items ?? 0}
-                                    </h3>
+                                    <h3>{total_cart_items ?? 0}</h3>
                                   </div>
                                 </div>
                               </div>
@@ -307,134 +297,139 @@ const handleSubmit = async (e,fetchUserDetails) => {
                           </div>
 
                           <form onSubmit={handleSubmit}>
-          <div className="dashboard-title">
-            <h3>Account Information</h3>
-          </div>
+                            <div className="dashboard-title">
+                              <h3>Account Information</h3>
+                            </div>
 
-          <div className="row g-4">
-            <div className="col-xxl-6">
-              <div className="dashboard-content-title">
-                <h4>Username</h4>
-              </div>
-              <div className="dashboard-detail">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={username}
-                  name="username"
-                  id="username"
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-            </div>
+                            <div className="row g-4">
+                              <div className="col-xxl-6">
+                                <div className="dashboard-content-title">
+                                  <h4>Username</h4>
+                                </div>
+                                <div className="dashboard-detail">
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={username}
+                                    name="username"
+                                    id="username"
+                                    onChange={(e) =>
+                                      setUsername(e.target.value)
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-xxl-6">
+                                <div className="dashboard-content-title">
+                                  <h4>Phone</h4>
+                                </div>
+                                <div className="dashboard-detail">
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={phone}
+                                    name="phone"
+                                    id="phone"
+                                    maxLength={10}
+                                    onChange={(e) => {
+                                      const inputValue = e.target.value.replace(
+                                        /\D/g,
+                                        ""
+                                      ); // Remove non-digit characters
+                                      setphone(inputValue); // Update state with digits only
+                                    }}
+                                  />
+                                </div>
+                              </div>
 
-            <div className="col-xxl-6">
-              <div className="dashboard-content-title">
-                <h4>Phone</h4>
-              </div>
-              <div className="dashboard-detail">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={phone}
-                  name="phone"
-                  id="phone"
-                  onChange={(e) => {
-                    const phoneValue = setphone(e.target.value);
-                    if (/^\d{0,10}$/.test(phoneValue)) {
-                      
-                    }
-                  }}
-                />
-              </div>
-            </div>
+                              <div className="col-xxl-6">
+                                <div className="dashboard-content-title">
+                                  <h4>Address</h4>
+                                </div>
+                                <div className="dashboard-detail">
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={address}
+                                    name="address"
+                                    id="address"
+                                    onChange={(e) => setaddress(e.target.value)}
+                                  />
+                                </div>
+                              </div>
 
-            <div className="col-xxl-6">
-              <div className="dashboard-content-title">
-                <h4>Address</h4>
-              </div>
-              <div className="dashboard-detail">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={address}
-                  name="address"
-                  id="address"
-                  onChange={(e) => setaddress(e.target.value)}
-                />
-              </div>
-            </div>
+                              <div className="col-xxl-6">
+                                <div className="dashboard-content-title">
+                                  <h4>Pincode</h4>
+                                </div>
+                                <div className="dashboard-detail">
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={pincode}
+                                    name="pincode"
+                                    id="pincode"
+                                    maxLength={6}
+                                    onChange={(e) => {
+                                      const inputValue = e.target.value.replace(
+                                        /\D/g,
+                                        ""
+                                      ); // Remove non-digits
+                                      setpincode(inputValue); // Update state with digits only
+                                    }}
+                                  />
+                                </div>
+                              </div>
 
-            <div className="col-xxl-6">
-              <div className="dashboard-content-title">
-                <h4>Pincode</h4>
-              </div>
-              <div className="dashboard-detail">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={pincode}
-                  name="pincode"
-                  id="pincode"
-                  onChange={(e) => {
-                    const pincodeValue = setpincode(e.target.value);
-                    if (/^\d{0,6}$/.test(pincodeValue)) {
-                     
-                    }
-                  }}
-                />
-              </div>
-            </div>
+                              <div className="col-xxl-6">
+                                <div className="dashboard-content-title">
+                                  <h4>Country</h4>
+                                </div>
+                                <div className="dashboard-detail">
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={country}
+                                    name="country"
+                                    id="country"
+                                    onChange={(e) => setcountry(e.target.value)}
+                                  />
+                                </div>
+                              </div>
 
-            <div className="col-xxl-6">
-              <div className="dashboard-content-title">
-                <h4>Country</h4>
-              </div>
-              <div className="dashboard-detail">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={country}
-                  name="country"
-                  id="country"
-                  onChange={(e) => setcountry(e.target.value)}
-                />
-              </div>
-            </div>
+                              <div className="col-xxl-6">
+                                <div className="dashboard-content-title">
+                                  <h4>State</h4>
+                                </div>
+                                <div className="dashboard-detail">
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={state}
+                                    name="state"
+                                    id="state"
+                                    onChange={(e) => setstate(e.target.value)}
+                                  />
+                                </div>
+                              </div>
 
-            <div className="col-xxl-6">
-              <div className="dashboard-content-title">
-                <h4>State</h4>
-              </div>
-              <div className="dashboard-detail">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={state}
-                  name="state"
-                  id="state"
-                  onChange={(e) => setstate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="col-12">
-              <div className="text-center">
-                <button
-                  type="submit"
-                  className="btn btn-animation proceed-btn fw-bold"
-                  style={{
-                    color: "white",
-                    backgroundColor: "#4CAF50",
-                    padding: "10px 20px",
-                  }}
-                >
-                  Submit
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
+                              <div className="col-12">
+                                <div className="text-center">
+                                  <button
+                                    type="submit"
+                                    className="btn btn-animation proceed-btn fw-bold"
+                                    style={{
+                                      color: "white",
+                                      backgroundColor: "#4CAF50",
+                                      padding: "10px 20px",
+                                    }}
+                                  >
+                                    Submit
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </form>
                         </div>
                       </div>
                     </div>
@@ -443,7 +438,7 @@ const handleSubmit = async (e,fetchUserDetails) => {
               </div>
             </div>
           </section>
-          <ToastContainer/>
+          <ToastContainer />
           {/* User Dashboard Section End */}
           <Footer />
         </>
