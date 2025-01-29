@@ -7,15 +7,16 @@ const authenticate = (req, res, next) => {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
 
-  try {
-    // Verify the token using the JWT_SECRET
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  // Use a Promise to handle token verification asynchronously
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(400).json({ message: 'Invalid token.' });
+    }
 
-    req.user = decoded;  // Attach decoded user data to the request object
+    // Attach decoded user data to the request object
+    req.user = decoded;
     next();  // Proceed to the next middleware/route handler
-  } catch (err) {
-    res.status(400).json({ message: 'Invalid token.' });
-  }
+  });
 };
 
 module.exports = authenticate;
