@@ -1,6 +1,7 @@
-const db=require('../../../config/db');
+const db = require('../../../config/db');
 
-exports.getAllOrdersForAdmin = (req, res) => {
+// Function to get all orders for admin
+exports.getAllOrdersForAdmin = async (req, res) => {
   const query = `
     SELECT
       o.order_id,
@@ -27,7 +28,7 @@ exports.getAllOrdersForAdmin = (req, res) => {
           '"quantity": ', oi.quantity, ', ',
           '"price": ', oi.price, ', ',
           '"total_price": ', oi.total_price, ', ',
-          '"product_image": ', JSON_QUOTE(oi.product_image), '}'
+          '"product_image": ', JSON_QUOTE(COALESCE(oi.product_image, '')), '}'
         )
       ) AS items
     FROM orders o
@@ -39,13 +40,9 @@ exports.getAllOrdersForAdmin = (req, res) => {
     GROUP BY o.order_id;
   `;
 
-  db.query(query, (err, result) => {
-    if (err) {
-      console.error('Database query error:', err); // Log the error
-      return res.status(500).json({ error: 'Failed to fetch orders for admin', details: err });
-    }
-
-    console.log('Raw result from database:', result); // Log the raw result from the database
+  try {
+    // Query the database
+    const [result] = await db.query(query);
 
     if (result.length === 0) {
       console.log('No orders found');
@@ -96,35 +93,36 @@ exports.getAllOrdersForAdmin = (req, res) => {
         items: order.items ? JSON.parse(`[${order.items}]`) : [],
       };
 
-      if (order.order_status === 'Canceled') {
+      // Remove expected_delivery_date for certain statuses
+      if (['Pending', 'Canceled', 'Payment-failure'].includes(order.order_status)) {
         delete orderResponse.expected_delivery_date;
       }
 
+      // Map over items to add product image URL if available
       orderResponse.items = orderResponse.items.map(item => ({
         product_id: item.product_id,
         product_name: item.product_name,
         quantity: item.quantity,
         price: item.price,
         total_price: item.total_price,
-        product_image: item.product_image ? `/${item.product_image}` : null,
+        product_image: item.product_image ? `/${item.product_image.replace(/\\/g, '/')}` : null, // Ensure proper URL formatting
       }));
 
       return orderResponse;
     });
 
-    console.log('Parsed result:', parsedResult); // Log the parsed result
-
     res.status(200).json({
       message: 'All orders fetched successfully',
       orders: parsedResult,
     });
-  });
+  } catch (err) {
+    console.error('Database query error:', err); // Log the error
+    res.status(500).json({ error: 'Failed to fetch orders for admin', details: err });
+  }
 };
 
 
-
-
-exports.updateOrderStatusByAdmin = (req, res) => {
+exports.updateOrderStatusByAdmin = async (req, res) => {
   const { order_id, status, expected_delivery_date, modified_by } = req.body;
 
   const allowedStatuses = ['Confirmed', 'Shipped', 'Dispatched', 'Out for Delivery', 'Delivered'];
@@ -156,18 +154,16 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     }
   }
 
-  // Query to check the order status and payment status
-  const checkStatusQuery = `
-    SELECT o.status, o.expected_delivery_date, p.payment_status 
-    FROM orders o
-    LEFT JOIN payments p ON o.order_id = p.order_id
-    WHERE o.order_id = ?;
-  `;
+  try {
+    // Query to check the order status and payment status
+    const checkStatusQuery = `
+      SELECT o.status, o.expected_delivery_date, p.payment_status 
+      FROM orders o
+      LEFT JOIN payments p ON o.order_id = p.order_id
+      WHERE o.order_id = ?;
+    `;
 
-  db.query(checkStatusQuery, [order_id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to fetch order and payment status', details: err });
-    }
+    const [result] = await db.query(checkStatusQuery, [order_id]);
 
     if (result.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
@@ -191,7 +187,6 @@ exports.updateOrderStatusByAdmin = (req, res) => {
     if (status === currentStatus) {
       return res.status(400).json({ error: 'No changes happened' });
     }
-    
 
     // Update query
     const updateQuery = `
@@ -203,62 +198,62 @@ exports.updateOrderStatusByAdmin = (req, res) => {
       WHERE order_id = ?;
     `;
 
-    db.query(updateQuery, [status, formattedDate, modified_by, order_id], (err, result) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to update order status', details: err });
-      }
+    const [updateResult] = await db.query(updateQuery, [status, formattedDate, modified_by, order_id]);
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
+    if (updateResult.affectedRows === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
 
-      res.status(200).json({
-        message: `Order status updated to ${status}${formattedDate ? ` with expected delivery date ${expected_delivery_date}` : ''}`,
-      });
+    res.status(200).json({
+      message: `Order status updated to ${status}${formattedDate ? ` with expected delivery date ${expected_delivery_date}` : ''}`,
     });
-  });
+
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.status(500).json({ error: 'Failed to update order status', details: err });
+  }
 };
 
-exports.getAllOrdersSummary = (req, res) => {
-  // Query to fetch the total orders, pending orders, customer count, and total products
+exports.getAllOrdersSummary = async (req, res) => {
   const query = `
     SELECT 
       COUNT(DISTINCT CASE 
-        WHEN o.status IN ('Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered') THEN o.order_id  -- Count only valid order statuses
+        WHEN o.status IN ('Confirmed', 'Shipped', 'Out for Delivery', 'Dispatched', 'Delivered') THEN o.order_id
         ELSE NULL 
-      END) AS total_orders,  -- Count all valid orders
+      END) AS total_orders, 
       COUNT(DISTINCT CASE 
-        WHEN p.payment_status = 'Incomplete' THEN o.order_id  -- Only count orders with 'Incomplete' payment status
+        WHEN p.payment_status = 'Incomplete' THEN o.order_id 
         ELSE NULL 
-      END) AS pending_orders,  -- Count pending orders where payment is 'Incomplete'
+      END) AS pending_orders, 
       COUNT(DISTINCT CASE 
-        WHEN u.role_id = 1 THEN u.user_id  -- Count all customers with role_id = 1
+        WHEN u.role_id = 1 THEN u.user_id 
         ELSE NULL 
-      END) AS total_customers,  -- Count all customers
-      (SELECT COUNT(*) FROM product) AS total_products  -- Count all products
+      END) AS total_customers, 
+      (SELECT COUNT(*) FROM product) AS total_products
     FROM users u
     LEFT JOIN orders o ON u.user_id = o.user_id
-    LEFT JOIN payments p ON o.order_id = p.order_id  -- Join with payments to check payment status
-    WHERE o.order_id IS NOT NULL  -- Exclude cart-related rows or non-order entries
+    LEFT JOIN payments p ON o.order_id = p.order_id
+    WHERE u.role_id = 1  -- Ensuring only users with role_id = 1 are considered
   `;
 
-  db.query(query, (err, result) => {
-    if (err) {
-      console.error("Failed to fetch order summary:", err);
-      return res.status(500).json({ error: 'Database error' });
-    }
+  try {
+    const [result] = await db.query(query);
 
     if (result.length === 0) {
+      console.log('No data available');
       return res.status(404).json({ message: 'No data available' });
     }
 
-    // Respond with the order summary
     res.status(200).json({
       message: 'Order summary fetched successfully',
-      order_summary: result[0], // Contains total_orders, pending_orders, total_customers, and total_products
+      order_summary: result[0],  // Contains total_orders, pending_orders, total_customers, and total_products
     });
-  });
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
 };
+
 
 
 

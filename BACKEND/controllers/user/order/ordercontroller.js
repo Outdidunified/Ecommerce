@@ -1,34 +1,32 @@
-const db=require('../../../config/db');
+const db = require('../../../config/db');
 const razorpay = require('razorpay'); // Razorpay Node.js SDK
+const crypto = require('crypto'); // For generating signature
 
 // Razorpay instance
 const razorpayInstance = new razorpay({
   key_id: 'rzp_test_oHoZ3Q1fF6pYEI',
   key_secret: 'Q9FQHLJGtA8knQPOmdTr7vpK'
-}); 
+});
 
-exports.placeorderfromcart = (req, res) => {
+exports.placeorderfromcart = async (req, res) => {
   const { user_id, delivery_address } = req.body;
-
+  
   // Destructure delivery address fields
   const { name, contact_number, pincode, city, state, house_no, road_name } = delivery_address;
 
   // Log request body for debugging
   console.log("Request Body:", req.body);
 
-  // Fetch cart items
-  const fetchCartQuery = `
-    SELECT c.cart_id, c.product_id, c.quantity, p.price, p.product_name, p.image AS product_image
-    FROM cart c
-    JOIN product p ON c.product_id = p.product_id
-    WHERE c.user_id = ?
-  `;
+  try {
+    // Fetch cart items
+    const fetchCartQuery = `
+      SELECT c.cart_id, c.product_id, c.quantity, p.price, p.product_name, p.image AS product_image
+      FROM cart c
+      JOIN product p ON c.product_id = p.product_id
+      WHERE c.user_id = ?
+    `;
 
-  db.query(fetchCartQuery, [user_id], (err, cartItems) => {
-    if (err) {
-      console.error("Error fetching cart items:", err);
-      return res.status(500).json({ error: 'Failed to fetch cart items' });
-    }
+    const [cartItems] = await db.query(fetchCartQuery, [user_id]);
 
     if (cartItems.length === 0) {
       console.log("Cart is empty for user_id:", user_id);
@@ -43,156 +41,157 @@ exports.placeorderfromcart = (req, res) => {
     totalPrice = parseFloat(totalPrice.toFixed(2)); // Round to 2 decimals
     console.log("Total Price Calculated:", totalPrice);
 
-    // Create order (without tracking code for now)
+    // Create order
     const createOrderQuery = `
       INSERT INTO orders (user_id, total_price)
       VALUES (?, ?)
     `;
 
-    db.query(createOrderQuery, [user_id, totalPrice], (err, result) => {
-      if (err) {
-        console.error("Error creating order:", err);
-        return res.status(500).json({ error: 'Failed to create order', details: err });
-      }
+    const [orderResult] = await db.query(createOrderQuery, [user_id, totalPrice]);
+    const order_id = orderResult.insertId;
+    console.log("Order Created with ID:", order_id);
 
-      const order_id = result.insertId;
-      console.log("Order Created with ID:", order_id);
+    // Add items to order_items table
+    const insertOrderItemsQuery = `
+      INSERT INTO order_items (order_id, product_id, product_name, product_image, quantity, price, total_price)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
 
-      // Add items to order_items table
-      cartItems.forEach(item => {
-        const insertOrderItemQuery = `
-          INSERT INTO order_items (order_id, product_id, product_name, product_image, quantity, price, total_price)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-        db.query(insertOrderItemQuery, [order_id, item.product_id, item.product_name, item.product_image, item.quantity, item.price, item.price * item.quantity]);
-      });
-      console.log("Order items added for order_id:", order_id);
+    for (let item of cartItems) {
+      await db.query(insertOrderItemsQuery, [
+        order_id, item.product_id, item.product_name, item.product_image,
+        item.quantity, item.price, item.price * item.quantity
+      ]);
+    }
+    console.log("Order items added for order_id:", order_id);
 
-      // Insert the delivery address
-      const insertDeliveryAddressQuery = `
-        INSERT INTO delivery_address (user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      db.query(insertDeliveryAddressQuery, [user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name], (err) => {
-        if (err) {
-          console.error("Error adding delivery address:", err);
-          return res.status(500).json({ error: 'Failed to add delivery address' });
-        }
-        console.log("Delivery address added for order_id:", order_id);
+    // Insert the delivery address
+    const insertDeliveryAddressQuery = `
+      INSERT INTO delivery_address (user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-        // Generate Razorpay Payment Order
-        const paymentOrderOptions = {
-          amount: totalPrice * 100, // Convert INR to paise
-          currency: 'INR',
-          receipt: `order_rcptid_${order_id}`,
-          payment_capture: 1
-        };
+    await db.query(insertDeliveryAddressQuery, [
+      user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name
+    ]);
+    console.log("Delivery address added for order_id:", order_id);
 
-        razorpayInstance.orders.create(paymentOrderOptions, (err, paymentOrder) => {
-          if (err) {
-            console.error("Error creating Razorpay payment order:", err);
-            return res.status(500).json({ error: 'Failed to create payment order' });
-          }
-          console.log("Razorpay Payment Order Created:", paymentOrder);
+    // Generate Razorpay Payment Order
+    const paymentOrderOptions = {
+      amount: totalPrice * 100, // Convert INR to paise
+      currency: 'INR',
+      receipt: `order_rcptid_${order_id}`,
+      payment_capture: 1
+    };
 
-          // Generate payment signature
-          const crypto = require('crypto');
-          const body = paymentOrder.id + "|" + order_id;
-          const generatedSignature = crypto.createHmac('sha256', 'Q9FQHLJGtA8knQPOmdTr7vpK')
-            .update(body)
-            .digest('hex');
-          console.log("Generated Signature:", generatedSignature);
+    const paymentOrder = await razorpayInstance.orders.create(paymentOrderOptions);
+    console.log("Razorpay Payment Order Created:", paymentOrder);
 
-          // Save Razorpay payment info
-          const insertPaymentQuery = `
-            INSERT INTO payments (order_id, payment_method, payment_status, razorpay_payment_id, razorpay_signature, amount)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `;
-          db.query(insertPaymentQuery, [order_id, 'Razorpay', 'Pending', paymentOrder.id, generatedSignature, totalPrice]);
-          console.log("Payment info saved for order_id:", order_id);
+    // Generate payment signature
+    const body = paymentOrder.id + "|" + order_id;
+    const generatedSignature = crypto.createHmac('sha256', razorpayInstance.key_secret)
+      .update(body)
+      .digest('hex');
+    console.log("Generated Signature:", generatedSignature);
 
-          // Return success response
-          return res.json({
-            message: 'Order created',
-            order_id,
-            totalPrice,
-            delivery_address: { name, contact_number, pincode, city, state, house_no, road_name },
-            payment_order: paymentOrder,
-            payment_signature: generatedSignature
-          });
-        });
-      });
+    // Save Razorpay payment info
+    const insertPaymentQuery = `
+      INSERT INTO payments (order_id, payment_method, payment_status, razorpay_payment_id, razorpay_signature, amount)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    await db.query(insertPaymentQuery, [
+      order_id, 'Razorpay', 'Pending', paymentOrder.id, generatedSignature, totalPrice
+    ]);
+    console.log("Payment info saved for order_id:", order_id);
+
+    // Return success response
+    return res.json({
+      message: 'Order created',
+      order_id,
+      totalPrice,
+      delivery_address: { name, contact_number, pincode, city, state, house_no, road_name },
+      payment_order: paymentOrder,
+      payment_signature: generatedSignature
     });
-  });
+
+  } catch (err) {
+    console.error("Error placing order:", err);
+    return res.status(500).json({ error: 'Failed to place order', details: err.message });
+  }
 };
 
 
-exports.paymentsuccess = (req, res) => {
+
+exports.paymentsuccess = async (req, res) => {
   const { razorpay_payment_id, order_id, razorpay_signature, user_id } = req.body;
 
   console.log("Payment Success Request Body:", req.body); // Log incoming request body
 
-  // Verify payment signature
-  const crypto = require('crypto');
-  const body = razorpay_payment_id + "|" + order_id;
-  const expectedSignature = crypto.createHmac('sha256', 'Q9FQHLJGtA8knQPOmdTr7vpK')
-    .update(body)
-    .digest('hex');
+  try {
+    // Verify payment signature
+    const crypto = require('crypto');
+    const body = razorpay_payment_id + "|" + order_id;
+    const expectedSignature = crypto.createHmac('sha256', 'Q9FQHLJGtA8knQPOmdTr7vpK')
+      .update(body)
+      .digest('hex');
 
-  console.log("Expected Signature:", expectedSignature);
-  console.log("Provided Signature:", razorpay_signature);
+    console.log("Expected Signature:", expectedSignature);
+    console.log("Provided Signature:", razorpay_signature);
 
-  if (expectedSignature !== razorpay_signature) {
-    console.error("Payment signature mismatch for payment_id:", razorpay_payment_id);
-    return res.status(400).json({ error: 'Payment signature mismatch' });
-  }
-
-  // Update payment status in DB
-  const updatePaymentStatusQuery = 'UPDATE payments SET payment_status = ? WHERE razorpay_payment_id = ?';
-  db.query(updatePaymentStatusQuery, ['Completed', razorpay_payment_id], (err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to update payment status' });
+    if (expectedSignature !== razorpay_signature) {
+      console.error("Payment signature mismatch for payment_id:", razorpay_payment_id);
+      return res.status(400).json({ error: 'Payment signature mismatch' });
     }
+
+    // Update payment status in DB
+    const updatePaymentStatusQuery = 'UPDATE payments SET payment_status = ? WHERE razorpay_payment_id = ?';
+    await db.query(updatePaymentStatusQuery, ['Completed', razorpay_payment_id]);
     console.log("Payment status updated to 'Completed' for payment_id:", razorpay_payment_id);
 
     // Generate tracking code and update order status
     const trackingCode = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const updateOrderStatusQuery = 'UPDATE orders SET status = ?, tracking_code = ? WHERE order_id = ?';
-    db.query(updateOrderStatusQuery, ['Confirmed', trackingCode, order_id], (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to update order status' });
-      }
+    await db.query(updateOrderStatusQuery, ['Confirmed', trackingCode, order_id]);
 
-      // Clear the user's cart after payment
-      const clearCartQuery = 'DELETE FROM cart WHERE user_id = ?';
-      db.query(clearCartQuery, [user_id], (err) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to clear cart' });
-        }
-        console.log("Cart cleared for user_id:", user_id);
+    // Clear the user's cart after payment
+    const clearCartQuery = 'DELETE FROM cart WHERE user_id = ?';
+    await db.query(clearCartQuery, [user_id]);
+    console.log("Cart cleared for user_id:", user_id);
 
-        // Return success response
-        res.json({ message: 'Payment successful, order confirmed, and cart cleared' });
-      });
-    });
-  });
+    // Return success response
+    return res.json({ message: 'Payment successful, order confirmed, and cart cleared' });
+
+  } catch (err) {
+    console.error('Error during payment success process:', err);
+    return res.status(500).json({ error: 'Error processing payment success', details: err.message });
+  }
 };
 
-exports.failure= (req, res) => {
+exports.failure = async (req, res) => {
   const { razorpay_payment_id, order_id } = req.body;
 
-  // Update payment status in DB
-  const updatePaymentStatusQuery = 'UPDATE payments SET payment_status = ? WHERE razorpay_payment_id = ?';
-  db.query(updatePaymentStatusQuery, ['Incomplete', razorpay_payment_id]);
+  try {
+    // Update payment status in DB
+    const updatePaymentStatusQuery = 'UPDATE payments SET payment_status = ? WHERE razorpay_payment_id = ?';
+    await db.query(updatePaymentStatusQuery, ['Incomplete', razorpay_payment_id]);
+    console.log("Payment status updated to 'Incomplete' for payment_id:", razorpay_payment_id);
 
-  // Update order status
-  const updateOrderStatusQuery = 'UPDATE orders SET status = ? WHERE order_id = ?';
-  db.query(updateOrderStatusQuery, ['Pending', order_id]);
+    // Update order status
+    const updateOrderStatusQuery = 'UPDATE orders SET status = ? WHERE order_id = ?';
+    await db.query(updateOrderStatusQuery, ['payment-failure', order_id]);
+    console.log("Order status updated to 'payment-failure' for order_id:", order_id);
 
-  res.json({ message: 'Payment failed and order canceled' });
+    // Return failure response
+    return res.json({ message: 'Payment failed and order canceled' });
 
+  } catch (err) {
+    console.error("Error during payment failure process:", err);
+    return res.status(500).json({ error: 'An error occurred while processing the payment failure', details: err.message });
+  }
 };
-exports.getOrderDetailsForUser = (req, res) => {
+
+exports.getOrderDetailsForUser = async (req, res) => {
   const { user_id } = req.query;
 
   if (!user_id) {
@@ -233,14 +232,13 @@ exports.getOrderDetailsForUser = (req, res) => {
     JOIN order_items oi ON o.order_id = oi.order_id
     WHERE o.user_id = ? 
       AND o.status NOT IN ('Pending', 'Cancelled') 
-      AND p.payment_status = 'Completed' -- Include only completed payments
+      AND p.payment_status = 'Completed'
     GROUP BY o.order_id;
   `;
 
-  db.query(query, [user_id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to fetch order details', details: err });
-    }
+  try {
+    // Await the query result
+    const [result] = await db.query(query, [user_id]);
 
     if (result.length === 0) {
       return res.status(404).json({ error: 'No orders found for the user with completed payment status' });
@@ -301,31 +299,33 @@ exports.getOrderDetailsForUser = (req, res) => {
       return orderResponse;
     });
 
-    res.json({
+    // Return the successfully fetched orders
+    return res.json({
       message: 'Order details with completed payments fetched successfully',
       orders: parsedResult,
     });
-  });
+
+  } catch (err) {
+    console.error("Error fetching order details:", err);
+    return res.status(500).json({ error: 'Failed to fetch order details', details: err.message });
+  }
 };
 
 
 
 
 
-exports.buynow = (req, res) => {
+
+exports.buynow = async (req, res) => {
   const { user_id, product_id, quantity, delivery_address } = req.body;
 
   // Destructure delivery address fields
   const { name, contact_number, pincode, city, state, house_no, road_name } = delivery_address;
 
-  // Fetch product details
-  const fetchProductQuery = `
-    SELECT price FROM product WHERE product_id = ?
-  `;
-  db.query(fetchProductQuery, [product_id], (err, product) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to fetch product details' });
-    }
+  try {
+    // Fetch product details
+    const fetchProductQuery = `SELECT price FROM product WHERE product_id = ?`;
+    const [product] = await db.query(fetchProductQuery, [product_id]);
 
     if (product.length === 0) {
       return res.status(400).json({ error: 'Product not found' });
@@ -334,73 +334,65 @@ exports.buynow = (req, res) => {
     const totalPrice = product[0].price * quantity;
 
     // Create Order
-    const trackingCode = 'TRACK' + order_id + Math.floor(Math.random() * 1000); // Example format: TRACK<order_id><random_number>
+    const trackingCode = 'TRACK' + Math.floor(Math.random() * 1000); // Example format: TRACK<random_number>
 
-// Create order with tracking_code
- const createOrderQuery = `
-  INSERT INTO orders (user_id, total_price, tracking_code)
-  VALUES (?, ?, ?)
-`;
-db.query(createOrderQuery, [user_id, totalPrice, trackingCode], (err, result) => {
-  if (err) {
-    console.error("Error creating order:", err);
-    return res.status(500).json({ error: 'Failed to create order', details: err });
-  }
+    const createOrderQuery = `
+      INSERT INTO orders (user_id, total_price, tracking_code)
+      VALUES (?, ?, ?)
+    `;
+    const [orderResult] = await db.query(createOrderQuery, [user_id, totalPrice, trackingCode]);
 
-  const order_id = result.insertId;
-  console.log("Order Created with ID:", order_id);
-    
+    const order_id = orderResult.insertId;
+    console.log("Order Created with ID:", order_id);
 
-      // Add item to order_items
-      const insertOrderItemQuery = `
-        INSERT INTO order_items (order_id, product_id, quantity, price, total_price)
+    // Add item to order_items
+    const insertOrderItemQuery = `
+      INSERT INTO order_items (order_id, product_id, quantity, price, total_price)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    await db.query(insertOrderItemQuery, [order_id, product_id, quantity, product[0].price, totalPrice]);
+
+    // Save delivery address for the order
+    const insertDeliveryAddressQuery = `
+      INSERT INTO delivery_address 
+      (user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    await db.query(insertDeliveryAddressQuery, [user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name]);
+
+    // Generate Razorpay Payment Order
+    const paymentOrderOptions = {
+      amount: totalPrice * 100, // Amount in paise
+      currency: 'INR',
+      receipt: `order_rcptid_${order_id}`,
+      payment_capture: 1
+    };
+
+    razorpayInstance.orders.create(paymentOrderOptions, async (err, paymentOrder) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to create payment order' });
+      }
+
+      // Save Razorpay Payment info in payments table
+      const insertPaymentQuery = `
+        INSERT INTO payments (order_id, payment_method, payment_status, razorpay_payment_id, amount)
         VALUES (?, ?, ?, ?, ?)
       `;
-      db.query(insertOrderItemQuery, [order_id, product_id, quantity, product[0].price, totalPrice]);
+      await db.query(insertPaymentQuery, [order_id, 'Razorpay', 'Pending', paymentOrder.id, totalPrice]);
 
-      // Save delivery address for the order
-      const insertDeliveryAddressQuery = `
-        INSERT INTO delivery_address 
-        (user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      db.query(insertDeliveryAddressQuery, [user_id, order_id, name, contact_number, pincode, city, state, house_no, road_name], (err) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to save delivery address' });
+      res.json({
+        message: 'Order created successfully',
+        order_id,
+        totalPrice,
+        payment_order: paymentOrder,
+        delivery_address: {
+          name, contact_number, pincode, city, state, house_no, road_name
         }
-
-        // Generate Razorpay Payment Order
-        const paymentOrderOptions = {
-          amount: totalPrice * 100, // Amount in paise
-          currency: 'INR',
-          receipt: `order_rcptid_${order_id}`,
-          payment_capture: 1
-        };
-
-        razorpayInstance.orders.create(paymentOrderOptions, (err, paymentOrder) => {
-          if (err) {
-            return res.status(500).json({ error: 'Failed to create payment order' });
-          }
-
-          // Save Razorpay Payment info in payments table
-          const insertPaymentQuery = `
-            INSERT INTO payments (order_id, payment_method, payment_status, razorpay_payment_id, amount)
-            VALUES (?, ?, ?, ?, ?)
-          `;
-          db.query(insertPaymentQuery, [order_id, 'Razorpay', 'Pending', paymentOrder.id, totalPrice]);
-
-          res.json({
-            message: 'Order created successfully',
-            order_id,
-            totalPrice,
-            payment_order: paymentOrder,
-            delivery_address: {
-              name, contact_number, pincode, city, state, house_no, road_name
-            }
-          });
-        });
       });
     });
-  });
+  } catch (err) {
+    console.error("Error processing buy now:", err);
+    return res.status(500).json({ error: 'Failed to process order', details: err.message });
+  }
 };
 

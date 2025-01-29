@@ -616,20 +616,27 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                   </div>
 
                   {/* Unit */}
-                  <div className="form-group">
-                    <label>Unit</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={productToEdit.unit}
-                      onChange={(e) =>
-                        setProductToEdit({
-                          ...productToEdit,
-                          unit: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+                                  {/* Unit */}
+                                  <div className="form-group">
+  <label>Unit</label>
+  <select
+    className="form-control"
+    value={productToEdit.unit}
+    onChange={(e) =>
+      setProductToEdit({
+        ...productToEdit,
+        unit: e.target.value,
+      })
+    }
+  >
+    <option disabled value="">
+      Select Unit
+    </option>
+    <option value="kg">kg</option>
+    <option value="nos">nos</option>
+  </select>
+</div>
+
 
                   {/* Quantity */}
                   <div className="form-group">

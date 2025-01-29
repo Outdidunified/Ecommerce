@@ -40,12 +40,14 @@ const AddUser = ({ handleLogout, adminData }) => {
     axios
       .get("/roles")
       .then((response) => {
-        setRoles(response.data);
+        const activeRoles = response.data.filter((role) => role.status === 1);
+        setRoles(activeRoles);
       })
       .catch((error) => {
         console.error("Error fetching roles:", error);
       });
   }, []);
+  
 
   const validateField = (name, value) => {
     let error = "";

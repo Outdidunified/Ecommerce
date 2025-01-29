@@ -108,6 +108,7 @@ const Login = ({ handleLogin }) => {
                                                 placeholder="Password"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
+                                                maxLength={15} // Enforces the limit at the input level
                                                 required
                                             />
                                             <label htmlFor="password">Password</label>
