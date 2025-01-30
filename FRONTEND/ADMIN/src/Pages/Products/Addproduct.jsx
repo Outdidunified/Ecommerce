@@ -298,7 +298,7 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                   onChange={(e) => {
                                     const newValue = e.target.value;
                                     // Only allow digits and ensure length is no more than 6
-                                    if (/^\d{0,6}$/.test(newValue)) {
+                                    if (/^\d{0,6}(\.\d{0,2})?$/.test(newValue)) {
                                       // regex allows only digits, with max 6 digits
                                       setPrice(newValue);
                                     }

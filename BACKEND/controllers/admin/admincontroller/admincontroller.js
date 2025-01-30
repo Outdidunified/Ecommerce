@@ -66,6 +66,11 @@ exports.signin = async (req, res) => {
       return res.status(403).json({ message: 'Your account is deactivated' });
     }
 
+    // Prevent users with role_id = 1 from logging in
+    if (user.role_id === 1) {
+      return res.status(403).json({ message: 'You are not authorized to log in' });
+    }
+
     // Check if password is correct
     if (password !== user.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -93,7 +98,6 @@ exports.signin = async (req, res) => {
       token,
       user_id: user.user_id,
       username: user.username,
-      password: user.password,
       email_id: user.email_id,
       role_name: role_name,
       role_id: user.role_id,
@@ -104,6 +108,7 @@ exports.signin = async (req, res) => {
     return res.status(500).json({ message: 'Error processing request', error: err.message });
   }
 };
+
 
 
 
@@ -234,7 +239,7 @@ exports.getUserDetails = async (req, res) => {
       message: 'User retrieved successfully',
       user: user,
     });
-
+3
   } catch (err) {
     console.error('Error verifying token or fetching user details:', err.message);
     if (err.name === 'JsonWebTokenError') {
