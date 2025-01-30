@@ -22,7 +22,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
 
   const [, setIsLoading] = useState(true);
   const fileInputRef = useRef(null); // Create ref for Image 1 file input
-  const fileInputRef2 = useRef(null); // Create ref for Image 2 file input
+  // const fileInputRef2 = useRef(null); // Create ref for Image 2 file input
 
   const handleFileChange = (e, imageField) => {
     const file = e.target.files[0];
@@ -97,7 +97,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
 
   const handleProductUpdate = async (e) => {
     e.preventDefault();
-  
+
     if (productToEdit) {
       try {
         // Find the category ID for the selected category
@@ -107,10 +107,10 @@ const ViewProduct = ({ handleLogout, adminData }) => {
         const selectedSubCategoryObj = subCategories.find(
           (subcategory) => subcategory.sub_category_name === selectedSubCategory
         );
-  
+
         // Create FormData object to send the data
         const formData = new FormData();
-  
+
         // Append text data to FormData
         formData.append("product_id", productToEdit.product_id);
         formData.append("product_name", productToEdit.product_name);
@@ -132,7 +132,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
         );
         formData.append("sub_category_name", selectedSubCategory);
         formData.append("description", productToEdit.description);
-  
+
         // Append files (actual image files, not URLs)
         if (productToEdit.image) {
           formData.append("image", productToEdit.image); // Append the actual image file (not a URL)
@@ -140,14 +140,14 @@ const ViewProduct = ({ handleLogout, adminData }) => {
         if (productToEdit.image2) {
           formData.append("image2", productToEdit.image2); // Append the second image file (not a URL)
         }
-  
+
         // Send the request to the API
         const response = await axios.put("/products/update", formData, {
           headers: {
             "Content-Type": "multipart/form-data", // Ensure the request is handled as multipart form data
           },
         });
-  
+
         if (response.status === 200) {
           // Update the products state with the updated product details
           setProducts((prevProducts) =>
@@ -164,14 +164,14 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                 : product
             )
           );
-  
+
           // Also update the productToEdit state to reflect the updated images
           setProductToEdit((prevProduct) => ({
             ...prevProduct,
             image: productToEdit.image, // Update image in the editing state
             image2: productToEdit.image2, // Update image2 in the editing state
           }));
-  
+
           toast.success("Product updated successfully!");
           closeProductEditModal();
         } else if (response.status === 400) {
@@ -184,7 +184,10 @@ const ViewProduct = ({ handleLogout, adminData }) => {
         // This will handle unexpected errors or network errors
         if (err.response) {
           console.error("Error response:", err.response);
-          toast.error(err.response.data.message || "An error occurred while updating the product.");
+          toast.error(
+            err.response.data.message ||
+              "An error occurred while updating the product."
+          );
         } else if (err.request) {
           console.error("No response received:", err.request);
           toast.error("No response from the server.");
@@ -195,7 +198,6 @@ const ViewProduct = ({ handleLogout, adminData }) => {
       }
     }
   };
-  
 
   const handleDelete = async (product) => {
     console.log(product); // Log product details for debugging
@@ -461,9 +463,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                 </p>
                 <p>
                   <strong>Status: </strong>
-                  {productToView.active_status === 1
-                    ? "Available"
-                    : "Out of Stock"}
+                  {productToView.status === 1 ? "Active" : "Inactive"}
                 </p>
                 <p>
                   <strong>Exchangable: </strong>
@@ -568,7 +568,9 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                     <input
                       type="text"
                       className="form-control"
+                      maxLength={10}
                       value={productToEdit.product_name}
+                      required
                       onChange={(e) =>
                         setProductToEdit({
                           ...productToEdit,
@@ -584,6 +586,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                     <select
                       className="form-control"
                       value={productToEdit.exchangable}
+                      required
                       onChange={(e) =>
                         setProductToEdit({
                           ...productToEdit,
@@ -602,10 +605,13 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                     <input
                       type="text" // Use type="text" for regex validation
                       className="form-control"
+                      required
                       value={productToEdit.price}
                       onChange={(e) => {
                         const newValue = e.target.value;
-                        if (/^\d*$/.test(newValue) && newValue.length <= 6) {
+
+                        // Regex to match: up to 6 digits before the decimal point and up to 2 digits after
+                        if (/^\d{0,6}(\.\d{0,2})?$/.test(newValue)) {
                           setProductToEdit({
                             ...productToEdit,
                             price: newValue,
@@ -616,27 +622,27 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                   </div>
 
                   {/* Unit */}
-                                  {/* Unit */}
-                                  <div className="form-group">
-  <label>Unit</label>
-  <select
-    className="form-control"
-    value={productToEdit.unit}
-    onChange={(e) =>
-      setProductToEdit({
-        ...productToEdit,
-        unit: e.target.value,
-      })
-    }
-  >
-    <option disabled value="">
-      Select Unit
-    </option>
-    <option value="kg">kg</option>
-    <option value="nos">nos</option>
-  </select>
-</div>
-
+                  {/* Unit */}
+                  <div className="form-group">
+                    <label>Unit</label>
+                    <select
+                      className="form-control"
+                      value={productToEdit.unit}
+                      required
+                      onChange={(e) =>
+                        setProductToEdit({
+                          ...productToEdit,
+                          unit: e.target.value,
+                        })
+                      }
+                    >
+                      <option disabled value="">
+                        Select Unit
+                      </option>
+                      <option value="kg">kg</option>
+                      <option value="nos">nos</option>
+                    </select>
+                  </div>
 
                   {/* Quantity */}
                   <div className="form-group">
@@ -644,6 +650,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                     <input
                       type="number"
                       className="form-control"
+                      required
                       value={productToEdit.quantity}
                       onChange={(e) => {
                         const newValue = e.target.value;
@@ -680,6 +687,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                     <label>Description</label>
                     <textarea
                       className="form-control"
+                      required
                       value={productToEdit.description}
                       onChange={(e) =>
                         setProductToEdit({
@@ -696,6 +704,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                       <input
                         type="text"
                         className="form-control"
+                        required
                         style={{ marginRight: "10px" }} // Add custom spacing between input and button
                         value={productToEdit.image}
                         onChange={(e) =>
@@ -725,7 +734,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
 
                   {/* Image 2 URL */}
 
-                  <div className="form-group">
+                  {/* <div className="form-group">
                     <label>Image 2 URL</label>
                     <div className="d-flex align-items-center">
                       <input
@@ -747,7 +756,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                       >
                         Upload File
                       </button>
-                      {/* Hidden file input */}
+                
                       <input
                         ref={fileInputRef2} // Using a ref to handle the file input
                         type="file"
@@ -756,7 +765,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                         onChange={(e) => handleFileChange(e, "image2")} // Handle file change
                       />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
                 <div className="modal-footer">
                   <button

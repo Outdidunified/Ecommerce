@@ -512,6 +512,7 @@ const Addtocart = ({ handleLogout, userdata }) => {
                               id="pincode"
                               className="form-control"
                               value={deliveryAddress.pincode}
+                              maxLength={6}
                               onChange={(e) =>
                                 setDeliveryAddress({
                                   ...deliveryAddress,
