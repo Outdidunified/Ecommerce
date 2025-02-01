@@ -154,6 +154,37 @@ exports.paymentsuccess = async (req, res) => {
     const updateOrderStatusQuery = 'UPDATE orders SET status = ?, tracking_code = ? WHERE order_id = ?';
     await db.query(updateOrderStatusQuery, ['Confirmed', trackingCode, order_id]);
 
+    // Fetch order items from the order_items table
+    const fetchOrderItemsQuery = `SELECT product_id, quantity FROM order_items WHERE order_id = ?`;
+    const [orderItems] = await db.query(fetchOrderItemsQuery, [order_id]);
+
+    // Reduce the stock for each product based on the quantity ordered
+    for (let item of orderItems) {
+      const { product_id, quantity } = item;
+
+      // Check if the product has enough stock
+      const fetchProductStockQuery = 'SELECT quantity FROM product WHERE product_id = ?';
+      const [product] = await db.query(fetchProductStockQuery, [product_id]);
+
+      console.log(`Checking stock for product_id ${product_id}:`, product); // Log the product stock fetched
+
+      if (product && product.length > 0 && product[0].quantity >= quantity) {
+        // Update the product quantity in the product table (reduce stock)
+        const updateProductStockQuery = `
+          UPDATE product SET quantity = quantity - ? WHERE product_id = ?
+        `;
+        await db.query(updateProductStockQuery, [quantity, product_id]);
+        console.log(`Reduced stock for product_id ${product_id} by ${quantity}`);
+      } else {
+        // If not enough stock, return error
+        const availableStock = product && product.length > 0 ? product[0].quantity : 0;
+        console.error(`Not enough stock for product_id ${product_id}. Available stock: ${availableStock}`);
+        return res.status(400).json({
+          error: `Not enough stock for product_id ${product_id}. Available stock: ${availableStock}`
+        });
+      }
+    }
+
     // Clear the user's cart after payment
     const clearCartQuery = 'DELETE FROM cart WHERE user_id = ?';
     await db.query(clearCartQuery, [user_id]);
@@ -167,6 +198,10 @@ exports.paymentsuccess = async (req, res) => {
     return res.status(500).json({ error: 'Error processing payment success', details: err.message });
   }
 };
+
+
+
+
 
 exports.failure = async (req, res) => {
   const { razorpay_payment_id, order_id } = req.body;

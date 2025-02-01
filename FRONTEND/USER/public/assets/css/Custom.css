@@ -1,22 +1,119 @@
-.order-status-titles {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-  
-  .status-title {
-    font-size: 14px;
-    color: rgb(190, 190, 190);
-    flex: 1;
-    text-align: center;
-  }
-  
-  .status-title.completed {
-    color: #2820bd; /* Completed status color */
-  }
-  
-  .status-title p {
-    margin: 0;
-    padding: 5px;
-  }
-  
+/* Sidebar container */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -300px; /* Hidden initially */
+  width: 300px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease-in-out;
+  z-index: 1000;
+  overflow-y: auto; /* Enables scrolling */
+}
+
+/* Open Sidebar */
+.sidebar.open {
+  right: 0; /* Slide in */
+}
+
+/* Sidebar content */
+.sidebar-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Close button styling */
+.close-sidebar {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
+
+/* Category Title */
+.category-title {
+  margin-top: 40px;
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 2px solid #0da487;
+  padding-bottom: 10px;
+}
+
+/* Category List */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Category Item */
+.category-item {
+  background: #0da487;
+  width: 100%;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.category-item:hover {
+  background: #0056b3;
+}
+
+/* Subcategory Modal */
+.subcategory-modal {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  position: relative;
+}
+
+/* Subcategory List */
+.subcategory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.subcategory-list button {
+  background: #e9ecef;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+  width: 100%;
+}
+
+/* Hover effect for subcategory items */
+.subcategory-list button:hover {
+  background-color: #d0d7db;
+}
+
+/* Loading/Error state */
+.error-message {
+  color: red;
+  padding: 10px;
+  margin-top: 50px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+

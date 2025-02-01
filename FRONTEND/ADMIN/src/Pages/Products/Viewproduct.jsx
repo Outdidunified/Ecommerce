@@ -236,6 +236,38 @@ const ViewProduct = ({ handleLogout, adminData }) => {
     }
   };
 
+  const formatDescription = (description) => {
+    const words = description.trim().split(/\s+/); // Split the description into words
+    const lines = [];
+    let line = [];
+
+    // Loop through words and group them into lines of 6 words
+    for (let i = 0; i < words.length; i++) {
+      if (line.length < 7) {
+        line.push(words[i]);
+      } else {
+        lines.push(line.join(" ")); // Join words to form a line
+        line = [words[i]]; // Start a new line
+      }
+    }
+
+    // Add any remaining words in the last line
+    if (line.length > 0) {
+      lines.push(line.join(" "));
+    }
+
+    // Now format each line, making sure no word exceeds 25 characters
+    return lines
+      .map(
+        (line) =>
+          line
+            .split(" ")
+            .map((word) => (word.length > 25 ? word.slice(0, 25) : word)) // Truncate words to 25 chars
+            .join(" ") // Rejoin words into a line
+      )
+      .join("<br />"); // Join lines with line breaks for HTML rendering
+  };
+
   return (
     <div>
       <ToastContainer />
@@ -474,9 +506,15 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                   {productToView.refundable === 1 ? "Yes" : "No"}
                 </p>
                 <p>
-                  <strong>Description: </strong>
-                  {productToView.description}
+                  <strong>Description:</strong>
+                  <br /> {/* Line break after the heading */}
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: formatDescription(productToView.description),
+                    }}
+                  />
                 </p>
+
                 <p>
                   <strong>Created By: </strong>
                   {productToView.created_by}
@@ -496,7 +534,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
 
                 {/* Display Image 1 */}
                 <p>
-                  <strong>Image 1: </strong>
+                  <strong>Image : </strong>
                   {productToView.image &&
                   productToView.image !== "/uploads/null" ? (
                     <img
@@ -516,7 +554,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                 </p>
 
                 {/* Display Image 2 */}
-                <p>
+                {/* <p>
                   <strong>Image 2: </strong>
                   {productToView.image2 &&
                   productToView.image2 !== "/uploads/null" ? (
@@ -534,7 +572,7 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                   ) : (
                     <span>No image available</span>
                   )}
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
@@ -568,15 +606,23 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                     <input
                       type="text"
                       className="form-control"
-                      maxLength={10}
                       value={productToEdit.product_name}
                       required
-                      onChange={(e) =>
-                        setProductToEdit({
-                          ...productToEdit,
-                          product_name: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        const input = e.target.value;
+                        // Allow alphanumeric characters, spaces, and special characters, and limit to 10 characters
+                        if (
+                          /^[a-zA-Z0-9\s!@#$%^&*()_+=[\]{};':"\\|,.<>/?]*$/.test(
+                            input
+                          ) &&
+                          input.length <= 15
+                        ) {
+                          setProductToEdit({
+                            ...productToEdit,
+                            product_name: input,
+                          });
+                        }
+                      }}
                     />
                   </div>
 
@@ -653,14 +699,16 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                       required
                       value={productToEdit.quantity}
                       onChange={(e) => {
-                        const newValue = e.target.value;
-                        if (newValue.length <= 5) {
+                        const newValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
+                        if (newValue.length <= 5 && Number(newValue) >= 0) {
+                          // Max 5 digits and prevent negative
                           setProductToEdit({
                             ...productToEdit,
                             quantity: newValue,
                           });
                         }
                       }}
+                      min="0" // Ensures UI restriction for negative values
                     />
                   </div>
 
@@ -689,14 +737,35 @@ const ViewProduct = ({ handleLogout, adminData }) => {
                       className="form-control"
                       required
                       value={productToEdit.description}
-                      onChange={(e) =>
-                        setProductToEdit({
-                          ...productToEdit,
-                          description: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const words = value.trim().split(/\s+/); // Split input into words
+
+                        // Check if all words are 10 characters or fewer
+                        const isValid = words.every(
+                          (word) => word.length <= 20
+                        );
+
+                        // Check word and character limits (50 words, 200 characters)
+                        if (
+                          isValid &&
+                          words.length <= 50 &&
+                          value.length <= 200
+                        ) {
+                          setProductToEdit({
+                            ...productToEdit,
+                            description: value,
+                          });
+                        }
+                      }}
                     />
+                    {/* Display Word and Character count */}
+                    <small className="text-muted">
+                      {productToEdit.description.trim().split(/\s+/).length}/50
+                      words, {productToEdit.description.length}/200 characters
+                    </small>
                   </div>
+
                   {/* Image 1 URL */}
                   <div className="form-group">
                     <label>Image 1 URL</label>

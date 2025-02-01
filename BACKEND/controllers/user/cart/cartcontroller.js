@@ -11,7 +11,10 @@ exports.addtocart = async (req, res) => {
 
   try {
     // Fetch the current stock quantity of the product
-    const [productResult] = await db.query('SELECT quantity FROM product WHERE product_id = ?', [product_id]);
+    const [productResult] = await db.query(
+      'SELECT quantity FROM product WHERE product_id = ?',
+      [product_id]
+    );
 
     if (productResult.length === 0) {
       return res.status(404).send({ message: 'Product not found' });
@@ -19,27 +22,41 @@ exports.addtocart = async (req, res) => {
 
     const availableQuantity = productResult[0].quantity;
 
+    // Check if the product is out of stock
+    if (availableQuantity === 0) {
+      return res.status(400).send({ message: 'Product is out of stock' });
+    }
+
     // Check if the requested quantity exceeds the available quantity
     if (quantity > availableQuantity) {
-      return res.status(400).send({ message: `Only ${availableQuantity} units are available for this product` });
+      return res
+        .status(400)
+        .send({ message: `Available Quantity for this product is${availableQuantity}` });
     }
 
     // Check if the product already exists in the user's cart
-    const [checkResult] = await db.query('SELECT * FROM cart WHERE user_id = ? AND product_id = ?', [user_id, product_id]);
+    const [checkResult] = await db.query(
+      'SELECT * FROM cart WHERE user_id = ? AND product_id = ?',
+      [user_id, product_id]
+    );
 
-    // If the product already exists in the cart, do not allow adding it
+    // If the product already exists in the cart, return an error
     if (checkResult.length > 0) {
       return res.status(400).send({ message: 'Product already exists in cart' });
     }
 
-    // Insert the product into the cart if it doesn't already exist
-    const [addResult] = await db.query('INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)', [user_id, product_id, quantity]);
+    // Insert the product into the cart
+    await db.query(
+      'INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)',
+      [user_id, product_id, quantity]
+    );
 
     res.status(200).send({ message: 'Product added to cart successfully' });
   } catch (err) {
     return res.status(500).send({ message: 'Error adding to cart', error: err.message });
   }
 };
+
 
 exports.getcart = async (req, res) => {
   const user_id = req.user.user_id; // Extract user_id from the token

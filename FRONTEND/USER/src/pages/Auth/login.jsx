@@ -204,6 +204,7 @@ const Login = ({ handleLogin }) => {
                       className="checkbox_animated check-box"
                       type="checkbox"
                       id="flexCheckDefault"
+                      required
                     />
                     <label
                       className="form-check-label"
