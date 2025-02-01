@@ -23,7 +23,7 @@ const AddProduct = ({ handleLogout, adminData }) => {
   const [productDescription, setProductDescription] = useState("");
 
   const [image1, setImage1] = useState(null);
-  const [image2, ] = useState(null);
+  const [image2] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
   const navigate = useNavigate(); // Initialize useNavigate for page redirection
@@ -170,10 +170,12 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                   value={productName}
                                   onChange={(e) => {
                                     const input = e.target.value;
-                                    // Allow only alphanumeric characters and limit to 10 characters
+                                    // Allow alphanumeric characters, spaces, and special characters, and limit to 10 characters
                                     if (
-                                      /^[a-zA-Z0-9]*$/.test(input) &&
-                                      input.length <= 10
+                                      /^[a-zA-Z0-9\s!@#$%^&*()_+=[\]{};':"\\|,.<>/?]*$/.test(
+                                        input
+                                      ) &&
+                                      input.length <= 15
                                     ) {
                                       setProductName(input);
                                     }
@@ -298,7 +300,9 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                   onChange={(e) => {
                                     const newValue = e.target.value;
                                     // Only allow digits and ensure length is no more than 6
-                                    if (/^\d{0,6}(\.\d{0,2})?$/.test(newValue)) {
+                                    if (
+                                      /^\d{0,6}(\.\d{0,2})?$/.test(newValue)
+                                    ) {
                                       // regex allows only digits, with max 6 digits
                                       setPrice(newValue);
                                     }
@@ -346,7 +350,6 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                 </label>
                               </div>
                             </div>
-
                             {/* Description */}
                             <div className="mb-4 row align-items-center">
                               <label className="form-label-title col-sm-3 mb-0">
@@ -356,12 +359,36 @@ const AddProduct = ({ handleLogout, adminData }) => {
                                 <textarea
                                   className="form-control"
                                   value={productDescription}
-                                  onChange={(e) =>
-                                    setProductDescription(e.target.value)
-                                  }
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    // Split input into words
+                                    const words = value.trim().split(/\s+/);
+
+                                    // Check if any word exceeds 10 characters
+                                    const isValid = words.every(
+                                      (word) => word.length <= 20
+                                    );
+
+                                    // If valid (all words have 10 or fewer characters) and within word/character limits
+                                    if (
+                                      isValid &&
+                                      words.length <= 50 &&
+                                      value.length <= 200
+                                    ) {
+                                      setProductDescription(value); // Update state with the valid value
+                                    }
+                                  }}
                                   placeholder="Product Description"
                                   required
                                 ></textarea>
+                                <small className="text-muted">
+                                  {
+                                    productDescription.trim().split(/\s+/)
+                                      .length
+                                  }
+                                  /50 words, {productDescription.length}/200
+                                  characters
+                                </small>
                               </div>
                             </div>
 

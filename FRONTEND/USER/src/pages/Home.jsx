@@ -107,40 +107,55 @@ const Home = ({ handleLogout, userdata }) => {
           return; // Stop the execution here if the user is not logged in
         }
       
-        try {
-          // Sending POST request to add product to the cart with the token in the headers
-          const response = await axios.post(
-            "/cart/addtocart",
-            {
-              user_id: "21", // Replace with actual user ID
-              product_id: product.product_id, // Product ID from the product object
-              quantity: quantity, // Quantity from the state
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${storedToken}`, // Send token in Authorization header
-              },
-            }
-          );
-      
-          // Handle success response if needed
-          console.log("Product added to cart:", response.data);
-          fetchCartItems(); 
-      
-          // Show success toast notification
-          toast.success("Product added to cart successfully!", {
-            position: "top-center",
-            autoClose: 3000, // Auto-close after 3 seconds
-          });
-        } catch (error) {
-          console.error("Error adding product to cart:", error);
-      
-          // Show error toast notification
-          toast.error("Product already added to cart", {
-            position: "top-center",
-            autoClose: 3000, // Auto-close after 3 seconds
-          });
+       try {
+      // Sending POST request to add product to the cart
+      const response = await axios.post(
+        "/cart/addtocart",
+        {
+          user_id: "21", // Replace with actual user ID
+          product_id: product.product_id, // Product ID from the product object
+          quantity: quantity, // Quantity from the state
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${storedToken}`, // Send token in Authorization header
+          },
         }
+      );
+    
+      if (response.status === 200) {
+        // Handle success response
+        console.log("Product added to cart:", response.data);
+        fetchCartItems(); 
+    
+        // Show success toast notification
+        toast.success("Product added to cart successfully!", {
+          position: "top-center",
+          autoClose: 3000, // Auto-close after 3 seconds
+        });
+      }  else {
+        // Handle unexpected status codes
+        toast.error("Something went wrong. Please try again.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      // Handle errors
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.message || "Invalid request.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } else {
+        console.error("Error adding product to cart:", error);
+        toast.error("An error occurred while adding the product to the cart.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
+    }
+    
       };
 
   const limitedProducts = products.slice(0, 15);

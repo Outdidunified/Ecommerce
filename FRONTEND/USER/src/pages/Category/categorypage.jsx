@@ -57,17 +57,12 @@ const Categorypage = ({ handleLogout, userdata }) => {
 
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("/product"); // Replace with your API endpoint
-        const fetchedProducts = Array.isArray(response.data)
-          ? response.data
-          : response.data.products || [];
+        const response = await axios.post("/product/categoryid",{
+          "category_id" : categoryId
+        }); // Replace with your API endpoint
+      
 
-        // Filter products with product_id between 10 and 25
-        const filteredProducts = fetchedProducts.filter(
-          (product) => product.product_id >= 10 && product.product_id <= 25
-        );
-
-        setProducts(filteredProducts);
+        setProducts(response.data.products);
       } catch (err) {
         setError(err.message);
         toast.error(err.message);
@@ -117,7 +112,7 @@ const Categorypage = ({ handleLogout, userdata }) => {
     }
   
     try {
-      // Sending POST request to add product to the cart with the token in the headers
+      // Sending POST request to add product to the cart
       const response = await axios.post(
         "/cart/addtocart",
         {
@@ -131,25 +126,40 @@ const Categorypage = ({ handleLogout, userdata }) => {
           },
         }
       );
-  
-      // Handle success response if needed
-      console.log("Product added to cart:", response.data);
-      fetchCartItems(); 
-  
-      // Show success toast notification
-      toast.success("Product added to cart successfully!", {
-        position: "top-center",
-        autoClose: 3000, // Auto-close after 3 seconds
-      });
+    
+      if (response.status === 200) {
+        // Handle success response
+        console.log("Product added to cart:", response.data);
+        fetchCartItems(); 
+    
+        // Show success toast notification
+        toast.success("Product added to cart successfully!", {
+          position: "top-center",
+          autoClose: 3000, // Auto-close after 3 seconds
+        });
+      }  else {
+        // Handle unexpected status codes
+        toast.error("Something went wrong. Please try again.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
     } catch (error) {
-      console.error("Error adding product to cart:", error);
-  
-      // Show error toast notification
-      toast.error("Product already added to cart", {
-        position: "top-center",
-        autoClose: 3000, // Auto-close after 3 seconds
-      });
+      // Handle errors
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.message || "Invalid request.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } else {
+        console.error("Error adding product to cart:", error);
+        toast.error("An error occurred while adding the product to the cart.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
     }
+    
   };
 
 

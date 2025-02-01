@@ -73,10 +73,8 @@ const Addtocart = ({ handleLogout, userdata }) => {
 
   const handleQuantityChange = async (cartId, newQuantity, productId) => {
     if (newQuantity < 1) return; // Prevent quantity from going below 1
-  
+
     try {
-  
-  
       // Make an API call to sync with the backend
       const response = await axios.put(
         "/cart/updatecart",
@@ -91,7 +89,7 @@ const Addtocart = ({ handleLogout, userdata }) => {
           },
         }
       );
-  
+
       if (response.status === 200) {
         // ✅ Update state only if API call succeeds
         setCartItems((prevItems) =>
@@ -99,7 +97,6 @@ const Addtocart = ({ handleLogout, userdata }) => {
             item.cart_id === cartId ? { ...item, quantity: newQuantity } : item
           )
         );
-      
       } else if (response.status === 400) {
         toast.error(response.data.message || "Failed to update quantity.");
       } else {
@@ -114,8 +111,7 @@ const Addtocart = ({ handleLogout, userdata }) => {
       }
     }
   };
-  
-  
+
   const handleRemoveItem = async (cartId, productId) => {
     try {
       if (!token) {
@@ -351,93 +347,139 @@ const Addtocart = ({ handleLogout, userdata }) => {
                         </div>
                       ) : (
                         <table className="table">
-  <tbody>
-    {cartItems.map((item) => (
-      <tr key={item.cart_id} className="product-box-contain">
-        <td className="product-detail">
-          <div className="product border-0">
-            <a href={`product-details/${item.product_id}`} className="product-image">
-              <img
-                src={`${item.image || "/default-image.png"}`} // Fallback image
-                className="img-fluid blur-up lazyload"
-                alt={item.product_name}
-              />
-            </a>
-            <div className="product-detail">
-              <ul>
-                <li className="name">
-                  <a href={`product-details/${item.product_id}`}>
-                    {item.product_name}
-                  </a>
-                </li>
-                <li className="text-content">
-                  <span className="text-title">Description:</span> {item.description}
-                </li>
-                <li className="text-content">
-                  <span className="text-title">Unit:</span> {item.unit}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </td>
-        <td className="quantity">
-          <h4 className="table-title text-content">Qty</h4>
-          <div className="quantity-price">
-            <div className="cart_qty">
-              <div className="input-group">
-                <button
-                  type="button"
-                  className="btn qty-left-minus"
-                  onClick={() =>
-                    handleQuantityChange(item.cart_id, item.quantity - 1, item.product_id)
-                  }
-                  disabled={item.quantity <= 1}
-                >
-                  <i className="fa fa-minus ms-0"></i>
-                </button>
-                <input
-                  className="form-control input-number qty-input"
-                  type="text"
-                  name="quantity"
-                  value={item.quantity}
-                  readOnly
-                />
-                <button
-                  type="button"
-                  className="btn qty-right-plus"
-                  onClick={() =>
-                    handleQuantityChange(item.cart_id, item.quantity + 1, item.product_id)
-                  }
-                >
-                  <i className="fa fa-plus ms-0"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </td>
-        <td className="subtotal">
-          <h4 className="table-title text-content">Total</h4>
-          <h5>Rs.{item.total_price * item.quantity}</h5>
-        </td>
-        <td className="save-remove">
-          <h4 className="table-title text-content">Action</h4>
-          <button
-            className="btn btn-animation proceed-btn fw-bold"
-            style={{
-              padding: "5px 10px",
-              fontSize: "12px",
-              borderRadius: "3px",
-            }}
-            onClick={() => handleRemoveItem(item.cart_id, item.product_id)}
-          >
-            <i className="fa fa-trash me-2"></i> Remove
-          </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
+                          <tbody>
+                            {cartItems.map((item) => (
+                              <tr
+                                key={item.cart_id}
+                                className="product-box-contain"
+                              >
+                                <td className="product-detail">
+                                  <div className="product border-0">
+                                    <a
+                                      href={`product-details/${item.product_id}`}
+                                      className="product-image"
+                                    >
+                                      <img
+                                        src={`${
+                                          item.image || "/default-image.png"
+                                        }`} // Fallback image
+                                        className="img-fluid blur-up lazyload"
+                                        alt={item.product_name}
+                                      />
+                                    </a>
+                                    <div className="product-detail">
+                                      <ul>
+                                        <li className="name">
+                                          <a
+                                            href={`product-details/${item.product_id}`}
+                                          >
+                                            {item.product_name}
+                                          </a>
+                                        </li>
+                                        <li className="text-content">
+                                          <span className="text-title">
+                                            Description:
+                                          </span>
+                                          {item.description
+                                            .split(" ")
+                                            .reduce((acc, word, index) => {
+                                              if ((index + 1) % 5 === 0) {
+                                                return [
+                                                  ...acc,
+                                                  word,
+                                                  <br key={index} />,
+                                                ]; // Add a <br /> after every 15 words
+                                              }
+                                              return [...acc, word + " "];
+                                            }, [])}
+                                        </li>
 
+                                        <li className="text-content">
+                                          <span className="text-title">
+                                            Unit:
+                                          </span>{" "}
+                                          {item.unit}
+                                        </li>
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="quantity">
+                                  <h4 className="table-title text-content">
+                                    Qty
+                                  </h4>
+                                  <div className="quantity-price">
+                                    <div className="cart_qty">
+                                      <div className="input-group">
+                                        <button
+                                          type="button"
+                                          className="btn qty-left-minus"
+                                          onClick={() =>
+                                            handleQuantityChange(
+                                              item.cart_id,
+                                              item.quantity - 1,
+                                              item.product_id
+                                            )
+                                          }
+                                          disabled={item.quantity <= 1}
+                                        >
+                                          <i className="fa fa-minus ms-0"></i>
+                                        </button>
+                                        <input
+                                          className="form-control input-number qty-input"
+                                          type="text"
+                                          name="quantity"
+                                          value={item.quantity}
+                                          readOnly
+                                        />
+                                        <button
+                                          type="button"
+                                          className="btn qty-right-plus"
+                                          onClick={() =>
+                                            handleQuantityChange(
+                                              item.cart_id,
+                                              item.quantity + 1,
+                                              item.product_id
+                                            )
+                                          }
+                                        >
+                                          <i className="fa fa-plus ms-0"></i>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="subtotal">
+                                  <h4 className="table-title text-content">
+                                    Total
+                                  </h4>
+                                  <h5>Rs.{item.total_price * item.quantity}</h5>
+                                </td>
+                                <td className="save-remove">
+                                  <h4 className="table-title text-content">
+                                    Action
+                                  </h4>
+                                  <button
+                                    className="btn btn-animation proceed-btn fw-bold"
+                                    style={{
+                                      padding: "5px 10px",
+                                      fontSize: "12px",
+                                      borderRadius: "3px",
+                                    }}
+                                    onClick={() =>
+                                      handleRemoveItem(
+                                        item.cart_id,
+                                        item.product_id
+                                      )
+                                    }
+                                  >
+                                    <i className="fa fa-trash me-2"></i> Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       )}
                     </div>
                   </div>
