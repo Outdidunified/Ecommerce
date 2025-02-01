@@ -5,6 +5,7 @@ const ProductController=require('../../controllers/user/product/productcontrolle
 router.get('/', ProductController.getAllProducts);
 router.post('/subcategorylist', ProductController.getsubcateg);
 router.post('/id', ProductController.getProducts);
+router.post('/categoryid', ProductController.getProductsByCategory);
 router.get('/categoryname', ProductController.getcategory);
 router.post('/search',ProductController.searchProducts);
 module.exports = router; 

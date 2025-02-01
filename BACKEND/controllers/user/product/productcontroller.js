@@ -48,6 +48,55 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+exports.getProductsByCategory = async (req, res) => {
+  const { category_id } = req.body;  // Get category_id from the request body
+
+  // Validate input
+  if (!category_id) {
+    return res.status(400).send({ message: 'category_id is required' });
+  }
+
+  try {
+    // Add a condition to filter by status = 1 and category_id
+    const query = 'SELECT * FROM product WHERE category_id = ? AND status = 1';
+    
+    // Fetch data from the database
+    const [results] = await db.query(query, [category_id]);
+
+    // Check if no products were found
+    if (results.length === 0) {
+      return res.status(404).send({ message: 'No products found for the given category_id' });
+    }
+
+    // Map results into a more structured response
+    const products = results.map(product => ({
+      product_id: product.product_id,
+      product_name: product.product_name,
+      price: product.price,
+      unit: product.unit,
+      quantity: product.quantity,
+      exchangable: product.exchangable,
+      refundable: product.refundable,
+      created_by: product.created_by,
+      description: product.description,
+      image: `/${product.image}`,
+      image2: `/${product.image2}`,
+      status: product.status,
+      modified_by: product.modified_by,
+      modified_date: product.modified_date,
+      created_date: product.created_date
+    }));
+
+    // Send the response with the filtered products
+    res.status(200).send({ products });
+
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    return res.status(500).send({ message: 'Error fetching products', error: err.message });
+  }
+};
+
+
 exports.getsubcateg = async (req, res) => {
   // Get category_id from the request body
   const { category_id } = req.body; // Assuming the category_id is sent in the request body
