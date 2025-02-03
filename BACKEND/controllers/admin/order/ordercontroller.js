@@ -144,7 +144,7 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
     const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (dateRegex.test(expected_delivery_date)) {
       const [day, month, year] = expected_delivery_date.split('/');
-      formattedDate = `${year}-${month}-${day}`;
+      formattedDate = `${year}-${month}-${day}`; // converting to YYYY-MM-DD format
       const dateObj = new Date(formattedDate);
       if (isNaN(dateObj)) {
         return res.status(400).json({ error: 'Invalid date format. Could not parse date.' });
@@ -183,8 +183,12 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
       return res.status(400).json({ error: 'Order cannot be updated after being delivered.' });
     }
 
-    // Check if there are no changes
-    if (status === currentStatus) {
+    // Allow update if only the expected_delivery_date has changed
+    const isStatusChanged = status !== currentStatus;
+    const isDeliveryDateChanged = formattedDate !== currentExpectedDeliveryDate;
+
+    // If neither status nor delivery date changed, return an error
+    if (!isStatusChanged && !isDeliveryDateChanged) {
       return res.status(400).json({ error: 'No changes happened' });
     }
 
@@ -213,6 +217,8 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
     res.status(500).json({ error: 'Failed to update order status', details: err });
   }
 };
+
+
 
 exports.getAllOrdersSummary = async (req, res) => {
   const query = `

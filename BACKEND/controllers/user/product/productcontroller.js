@@ -17,7 +17,7 @@ exports.getProducts = async (req, res) => {
 
     // Check if no products were found
     if (results.length === 0) {
-      return res.status(404).send({ message: 'No products found for the given sub_category_id' });
+      return res.status(400).send({ message: 'No products found' });
     }
 
     // Map results into a more structured response
@@ -65,7 +65,7 @@ exports.getProductsByCategory = async (req, res) => {
 
     // Check if no products were found
     if (results.length === 0) {
-      return res.status(404).send({ message: 'No products found for the given category_id' });
+      return res.status(400).send({ message: 'No products found ' });
     }
 
     // Map results into a more structured response
