@@ -185,7 +185,7 @@ const SubCategory = ({ handleLogout, adminData }) => {
                   <div className="card card-table">
                     <div className="card-body">
                       <div className="title-header option-title">
-                        <h5>Main Categories</h5>
+                        <h5>Sub Categories</h5>
                         <form className="d-inline-flex">
                           <Link className="btn btn-solid" to="/Addcategory">
                             Add New

@@ -70,7 +70,7 @@ const Orderdetail = ({ handleLogout, adminData }) => {
                                                 </div>
                                                 <div className="card-order-section">
                                                     <ul>
-                                                        <li>{order.created_date} at 9:08 pm</li>
+                                                        <li>{order.created_date} </li>
                                                         <li>{order.items.length} items</li>
                                                         <li>Total Rs.{order.total_price}</li>
                                                     </ul>

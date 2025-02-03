@@ -57,15 +57,24 @@ const Categorypage = ({ handleLogout, userdata }) => {
 
     const fetchProducts = async () => {
       try {
-        const response = await axios.post("/product/categoryid",{
-          "category_id" : categoryId
-        }); // Replace with your API endpoint
-      
-
-        setProducts(response.data.products);
+        const response = await axios.post("/product/categoryid", {
+          category_id: categoryId,
+        });
+    
+        if (response.status === 200) {
+          // Success: Set products
+          setProducts(response.data.products);
+        }
       } catch (err) {
-        setError(err.message);
-        toast.error(err.message);
+        // Check if error has a response (e.g., 400 Bad Request)
+        if (err.response && err.response.status === 400) {
+          setError(err.response.data.message);
+          toast.error(err.response.data.message);
+        } else {
+          // Handle other errors (e.g., network errors)
+          setError(err.message);
+          toast.error("An error occurred while fetching products.");
+        }
       } finally {
         setLoading(false);
       }

@@ -74,6 +74,11 @@ const Orderlist = ({ handleLogout, adminData }) => {
     }
   };
 
+  const parseDate = (dateStr) => {
+    const [day, month, year] = dateStr.split("/"); // Split the string into day, month, year
+    return new Date(`${month}/${day}/${year}`); // Create a new date object using mm/dd/yyyy format
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -327,6 +332,11 @@ const Orderlist = ({ handleLogout, adminData }) => {
                       placeholderText="Select a delivery date"
                       required
                       autoComplete="off"
+                      minDate={
+                        selectedOrder
+                          ? parseDate(selectedOrder.created_date)
+                          : null
+                      } // Use parsed date as minDate
                     />
 
                     {!isValidDate && (
