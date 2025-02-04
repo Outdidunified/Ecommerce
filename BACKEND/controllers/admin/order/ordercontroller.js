@@ -138,26 +138,28 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
     return res.status(400).json({ error: 'Modified by is required' });
   }
 
-  // Validate expected delivery date format
+  // Validate expected delivery date format and convert to YYYY-MM-DD
   let formattedDate = null;
   if (expected_delivery_date) {
     const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-    if (dateRegex.test(expected_delivery_date)) {
-      const [day, month, year] = expected_delivery_date.split('/');
-      formattedDate = `${year}-${month}-${day}`; // converting to YYYY-MM-DD format
-      const dateObj = new Date(formattedDate);
-      if (isNaN(dateObj)) {
-        return res.status(400).json({ error: 'Invalid date format. Could not parse date.' });
-      }
-    } else {
+    if (!dateRegex.test(expected_delivery_date)) {
       return res.status(400).json({ error: 'Invalid date format. Expected format: DD/MM/YYYY' });
+    }
+
+    // Convert DD/MM/YYYY to YYYY-MM-DD
+    const [day, month, year] = expected_delivery_date.split('/');
+    formattedDate = `${year}-${month}-${day}`;
+    const dateObj = new Date(formattedDate);
+
+    if (isNaN(dateObj.getTime())) {
+      return res.status(400).json({ error: 'Invalid date format. Could not parse date.' });
     }
   }
 
   try {
     // Query to check the order status and payment status
     const checkStatusQuery = `
-      SELECT o.status, o.expected_delivery_date, p.payment_status 
+      SELECT o.status, COALESCE(o.expected_delivery_date, '') AS expected_delivery_date, p.payment_status 
       FROM orders o
       LEFT JOIN payments p ON o.order_id = p.order_id
       WHERE o.order_id = ?;
@@ -170,7 +172,7 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
     }
 
     const currentStatus = result[0].status;
-    const currentExpectedDeliveryDate = result[0].expected_delivery_date;
+    const currentExpectedDeliveryDate = result[0].expected_delivery_date || null;
     const paymentStatus = result[0].payment_status;
 
     // Check if payment is completed
@@ -183,16 +185,16 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
       return res.status(400).json({ error: 'Order cannot be updated after being delivered.' });
     }
 
-    // Allow update if only the expected_delivery_date has changed
+    // Check if changes happened
     const isStatusChanged = status !== currentStatus;
     const isDeliveryDateChanged = formattedDate !== currentExpectedDeliveryDate;
 
-    // If neither status nor delivery date changed, return an error
+    // If no changes happened, return an error
     if (!isStatusChanged && !isDeliveryDateChanged) {
       return res.status(400).json({ error: 'No changes happened' });
     }
 
-    // Update query
+    // Update order details
     const updateQuery = `
       UPDATE orders 
       SET 
@@ -217,6 +219,7 @@ exports.updateOrderStatusByAdmin = async (req, res) => {
     res.status(500).json({ error: 'Failed to update order status', details: err });
   }
 };
+
 
 
 

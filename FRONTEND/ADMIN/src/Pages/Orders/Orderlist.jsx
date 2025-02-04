@@ -66,9 +66,12 @@ const Orderlist = ({ handleLogout, adminData }) => {
     setShowEditModal(true);
   };
   const handleDateChange = (date) => {
-    if (date instanceof Date && !isNaN(date)) {
+    if (date && date instanceof Date && !isNaN(date)) {
       setEstimatedDelivery(date); // Set valid date
       setIsValidDate(true);
+    } else if (!date) {
+      setEstimatedDelivery(null); // Clear the date
+      setIsValidDate(true); // Set as valid when cleared
     } else {
       setIsValidDate(false);
     }
@@ -162,7 +165,7 @@ const Orderlist = ({ handleLogout, adminData }) => {
                                 <th>Order Image</th>
                                 <th>Order Id</th>
                                 <th>Expected Delivery Date</th>
-                                <th>Payment Method</th>
+                                <th>Payment Status</th>
                                 <th>Delivery Status</th>
                                 <th>Amount</th>
                                 <th>Option</th>
@@ -327,8 +330,8 @@ const Orderlist = ({ handleLogout, adminData }) => {
                       onChange={handleDateChange}
                       dateFormat="dd/MM/yyyy"
                       className={`form-control ${
-                        isValidDate ? "" : "is-invalid"
-                      }`}
+                        estimatedDelivery && !isValidDate ? "is-invalid" : ""
+                      }`} // Only apply 'is-invalid' when there's a valid date but it's not accepted
                       placeholderText="Select a delivery date"
                       required
                       autoComplete="off"
@@ -339,7 +342,7 @@ const Orderlist = ({ handleLogout, adminData }) => {
                       } // Use parsed date as minDate
                     />
 
-                    {!isValidDate && (
+                    {!isValidDate && estimatedDelivery && (
                       <div className="invalid-feedback">
                         Please select a valid date.
                       </div>

@@ -257,7 +257,7 @@ exports.getOrderDetailsForUser = async (req, res) => {
           '"quantity": ', oi.quantity, ', ',
           '"price": ', oi.price, ', ',
           '"total_price": ', oi.total_price, ', ',
-          '"product_image": ', JSON_QUOTE(oi.product_image), '}'
+          '"product_image": ', JSON_QUOTE(COALESCE(oi.product_image, '')), '}'
         )
         SEPARATOR ',' 
       ) AS items
@@ -345,6 +345,7 @@ exports.getOrderDetailsForUser = async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch order details', details: err.message });
   }
 };
+
 
 
 
