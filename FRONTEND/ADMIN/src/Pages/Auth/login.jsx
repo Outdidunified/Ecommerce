@@ -84,21 +84,22 @@ const Login = ({ handleLogin }) => {
                                     <h4>Log In Your Account</h4>
                                 </div>
                                 <form className="row g-4" onSubmit={Loginfunction}>
-                                    <div className="col-12">
-                                        <div className="form-floating theme-form-floating log-in-form">
-                                            <input
-                                                type="email"
-                                                className="form-control"
-                                                id="email"
-                                                placeholder="Email Address"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                required
-                                            />
-                                            <label htmlFor="email">Email Address</label>
-                                            {emailError && <div className="text-danger mt-2">{emailError}</div>}
-                                        </div>
-                                    </div>
+                                <div className="col-12">
+  <div className="form-floating theme-form-floating log-in-form">
+    <input
+      type="email"
+      className="form-control"
+      id="email"
+      placeholder="Email Address"
+      value={email}
+      onChange={(e) => setEmail(e.target.value.toLowerCase())} // Convert to lowercase
+      required
+    />
+    <label htmlFor="email">Email Address</label>
+    {emailError && <div className="text-danger mt-2">{emailError}</div>}
+  </div>
+</div>
+
                                     <div className="col-12">
                                         <div className="form-floating theme-form-floating log-in-form">
                                             <input

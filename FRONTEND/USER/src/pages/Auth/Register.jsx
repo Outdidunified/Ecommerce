@@ -40,26 +40,38 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
+  
+    // If it's the email field, convert the value to lowercase before updating state
+    let updatedValue = value;
+    if (id === "email_id") {
+      updatedValue = value.toLowerCase();
+    }
+  
     setFormData((prevData) => ({
       ...prevData,
-      [id]: type === "checkbox" ? checked : value,
+      [id]: type === "checkbox" ? checked : updatedValue,
     }));
-
+  
     // Reset errors on valid input
-    if (id === "username" && usernameRegex.test(value)) {
+    if (id === "username" && usernameRegex.test(updatedValue)) {
       setUsernameError("");
     }
-    if (id === "email_id" && emailRegex.test(value)) {
-      setEmailError("");
+    if (id === "email_id") {
+      if (emailRegex.test(updatedValue)) {
+        setEmailError(""); // Reset email error if valid
+      } else {
+        setEmailError("Please enter a valid email address.");
+      }
     }
-    if (id === "password" && passwordRegex.test(value)) {
+    if (id === "password" && passwordRegex.test(updatedValue)) {
       setPasswordError("");
     }
     if (id === "termsAccepted" && checked) {
       setTermsError("");
     }
   };
-
+  
+  
   const handleRegister = async (e) => {
     e.preventDefault();
 
