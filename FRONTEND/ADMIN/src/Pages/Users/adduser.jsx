@@ -234,21 +234,24 @@ const AddUser = ({ handleLogout, adminData }) => {
 
                           {/* Email */}
                           <div className="col-md-6">
-                            <label>Email</label>
-                            <input
-                              type="email"
-                              className="form-control"
-                              name="email_id"
-                              value={formData.email_id}
-                              onChange={handleChange}
-                              required
-                            />
-                            {errors.email_id && (
-                              <small className="text-danger">
-                                {errors.email_id}
-                              </small>
-                            )}
-                          </div>
+  <label>Email</label>
+  <input
+    type="email"
+    className="form-control"
+    name="email_id"
+    value={formData.email_id}
+    onChange={(e) =>
+      handleChange({
+        target: { name: "email_id", value: e.target.value.toLowerCase() },
+      })
+    }
+    required
+  />
+  {errors.email_id && (
+    <small className="text-danger">{errors.email_id}</small>
+  )}
+</div>
+
 
                           {/* Password */}
                           <div className="col-md-6">

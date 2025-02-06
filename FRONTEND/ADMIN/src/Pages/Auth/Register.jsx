@@ -25,14 +25,23 @@ const Register = () => {
   const usernameRegex = /^[a-zA-Z][a-zA-Z0-9]{2,14}$/;
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
-
   const handleInputChange = (e) => {
     const { id, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [id]: type === 'checkbox' ? checked : value,
-    });
+    
+    // If the email field, convert it to lowercase before updating state
+    if (id === "email") {
+      setFormData({
+        ...formData,
+        [id]: value.toLowerCase(), // Automatically convert email to lowercase
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [id]: type === 'checkbox' ? checked : value,
+      });
+    }
   };
+  
 
   const handleRegister = async (e) => {
     e.preventDefault();
