@@ -42,7 +42,7 @@ const Login = ({ handleLogin }) => {
 
     // Validate password
     if (!passwordRegex.test(password)) {
-      setPasswordError("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+      setPasswordError("Password must contain at least one uppercase letter, one lowercase letter, one digit,one special character and min of 6 characters.");
       return; // Prevent form submission if password is invalid
     }
 

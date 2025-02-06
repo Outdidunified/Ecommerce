@@ -96,14 +96,19 @@ const AddUser = ({ handleLogout, adminData }) => {
           error = "Address is required.";
         }
         break;
-      case "country":
-        if (!value.trim()) {
-          error = "Country is required.";
-        }
-        break;
+        case "country":
+          if (!value.trim()) {
+            error = "Country is required.";
+          } else if (!/^[A-Za-z\s]+$/.test(value)) {
+            error = "Country should contain only alphabets.";
+          }
+          break;
+        
       case "state":
         if (!value.trim()) {
           error = "State is required.";
+        }else if (!/^[A-Za-z\s]+$/.test(value)) {
+          error = "State should contain only alphabets.";
         }
         break;
       default:
@@ -253,6 +258,7 @@ const AddUser = ({ handleLogout, adminData }) => {
                               className="form-control"
                               name="password"
                               value={formData.password}
+                              maxLength={15}
                               onChange={handleChange}
                               required
                             />
@@ -353,6 +359,7 @@ const AddUser = ({ handleLogout, adminData }) => {
                               type="text"
                               className="form-control"
                               name="country"
+                              maxLength={15}
                               value={formData.country}
                               onChange={handleChange}
                               required
@@ -371,6 +378,7 @@ const AddUser = ({ handleLogout, adminData }) => {
                               type="text"
                               className="form-control"
                               name="state"
+                              maxLength={20}
                               value={formData.state}
                               onChange={handleChange}
                               required
