@@ -325,7 +325,18 @@ exports.updateUser = async (req, res) => {
       return res.status(403).json({ message: 'Admin rights are required to update a user' });
     }
 
-    // Check if any fields have actually changed
+    // Fetch current user data
+    const [currentUserResult] = await db.query('SELECT * FROM users WHERE user_id = ?', [user_id]);
+
+    if (!currentUserResult.length) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentUser = currentUserResult[0];
+
+    // Check if any fields have changed by comparing each field individually
+    let changesMade = false;
+
     const fieldsToUpdate = {
       username,
       email_id,
@@ -340,21 +351,11 @@ exports.updateUser = async (req, res) => {
       modified_by,
     };
 
-    // Fetch current user data
-    const [currentUserResult] = await db.query('SELECT * FROM users WHERE user_id = ?', [user_id]);
-
-    if (!currentUserResult.length) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const currentUser = currentUserResult[0];
-
-    // Compare the current user data with the provided data
-    let changesMade = false;
+    // Loop through each field to compare the values
     for (const key in fieldsToUpdate) {
       if (fieldsToUpdate[key] !== currentUser[key]) {
         changesMade = true;
-        break;
+        break;  // If any field is different, break the loop and set changesMade to true
       }
     }
 
@@ -379,6 +380,7 @@ exports.updateUser = async (req, res) => {
     return res.status(500).json({ message: 'Error updating user', error: err.message });
   }
 };
+
 
 
 exports.deactivateUser = async (req, res) => {
