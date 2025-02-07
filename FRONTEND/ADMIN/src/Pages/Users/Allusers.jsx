@@ -517,6 +517,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 type="text"
                 className="form-control"
                 value={userToEdit.password || ""}
+                maxLength={15}
                 onChange={(e) => handleInputChange("password", e.target.value)}
               />
               {formErrors.password && (
