@@ -317,7 +317,7 @@ exports.updateUser = async (req, res) => {
   }
 
   try {
-    // Verify the JWT token
+    // Verify JWT token
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
     // Check if the user has admin rights (role_id 2)
@@ -334,28 +334,14 @@ exports.updateUser = async (req, res) => {
 
     const currentUser = currentUserResult[0];
 
-    // Check if any fields have changed by comparing each field individually
+    // Check if any fields have changed
     let changesMade = false;
+    const fieldsToUpdate = { username, email_id, password, role_id, user_type, address, pincode, phone, country, state, modified_by };
 
-    const fieldsToUpdate = {
-      username,
-      email_id,
-      password,
-      role_id,
-      user_type,
-      address,
-      pincode,
-      phone,
-      country,
-      state,
-      modified_by,
-    };
-
-    // Loop through each field to compare the values
     for (const key in fieldsToUpdate) {
       if (fieldsToUpdate[key] !== currentUser[key]) {
         changesMade = true;
-        break;  // If any field is different, break the loop and set changesMade to true
+        break;
       }
     }
 
@@ -363,12 +349,17 @@ exports.updateUser = async (req, res) => {
       return res.status(400).json({ message: 'No changes happened' });
     }
 
-    // Update query for the user
-    const query = `UPDATE users SET username = ?, email_id = ?, password = ?, role_id = ?, user_type = ?, address = ?, pincode = ?, phone = ?, country = ?, state = ?, modified_by = ? 
-                   WHERE user_id = ?`;
+    // Update user data
+    const [updateResult] = await db.query(
+      `UPDATE users SET username = ?, email_id = ?, password = ?, role_id = ?, user_type = ?, address = ?, pincode = ?, phone = ?, country = ?, state = ?, modified_by = ? 
+       WHERE user_id = ?`,
+      [username, email_id, password, role_id, user_type, address, pincode, phone, country, state, modified_by, user_id]
+    );
 
-    // Execute the update query
-    await db.query(query, [username, email_id, password, role_id, user_type, address, pincode, phone, country, state, modified_by, user_id]);
+    // ✅ Check if any rows were actually updated
+    if (updateResult.affectedRows === 0) {
+      return res.status(400).json({ message: 'No changes detected' });
+    }
 
     res.status(200).json({ message: 'User updated successfully' });
 
@@ -380,6 +371,7 @@ exports.updateUser = async (req, res) => {
     return res.status(500).json({ message: 'Error updating user', error: err.message });
   }
 };
+
 
 
 
