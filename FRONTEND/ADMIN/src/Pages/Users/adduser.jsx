@@ -307,6 +307,7 @@ const AddUser = ({ handleLogout, adminData }) => {
                               className="form-control"
                               name="address"
                               value={formData.address}
+                              maxLength={100}
                               onChange={handleChange}
                               required
                             />

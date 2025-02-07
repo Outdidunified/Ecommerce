@@ -16,7 +16,9 @@ const Allusers = ({ handleLogout, adminData }) => {
   const [userToView, setUserToView] = useState(null);
   const [showUserEditModal, setshowUserEditModal] = useState(false);
   const [userToEdit, setuserToEdit] = useState(null);
-  const [passwordError, setPasswordError] = useState("");
+
+  const [formErrors, setFormErrors] = useState("");
+  
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -91,10 +93,83 @@ const Allusers = ({ handleLogout, adminData }) => {
     setuserToEdit(null); // Clear the user data
   };
 
+  const handleInputChange = (field, value) => {
+    let errors = { ...formErrors };
+  
+    // Username Validation
+    if (field === "username") {
+      if (!/^[A-Za-z0-9]*$/.test(value)) {
+        errors.username = "Please enter only alphanumeric characters.";
+      } else if (value.length > 15) {
+        errors.username = "Maximum length of 15 characters reached.";
+      } else {
+        delete errors.username;
+      }
+    }
+  
+    // Address Validation
+    if (field === "address") {
+      if (!/^[A-Za-z0-9\s,./]*$/.test(value)) {
+        errors.address =
+          "Please enter only alphanumeric characters, spaces, commas, periods, or slashes.";
+      } else if (value.length > 100) {
+        errors.address = "Maximum length of 100 characters reached.";
+      } else {
+        delete errors.address;
+      }
+    }
+  
+    // Pincode Validation
+    if (field === "pincode") {
+      if (!/^\d{6}$/.test(value)) {
+        errors.pincode = "Pincode must be exactly 6 digits.";
+      } else {
+        delete errors.pincode;
+      }
+    }
+  
+    // Phone Number Validation
+    if (field === "phone") {
+      if (!/^\d{10}$/.test(value)) {
+        errors.phone = "Phone number must be exactly 10 digits.";
+      } else {
+        delete errors.phone;
+      }
+    }
+  
+    // Password Validation
+    if (field === "password") {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+  
+      if (!passwordRegex.test(value)) {
+        errors.password =
+          "Password must be at least 6 characters, contain one uppercase, one lowercase, one digit, and one special character.";
+      } else {
+        delete errors.password;
+      }
+    }
+
+      // Country & State Validation (Alphabetic Only)
+  if (field === "country" || field === "state") {
+    if (!/^[A-Za-z\s]*$/.test(value)) {
+      errors[field] = "Please enter only alphabetic characters and spaces.";
+    } else {
+      delete errors[field];
+    }
+  }
+
+  // Update errors and user state
+  setFormErrors(errors);
+  setuserToEdit({ ...userToEdit, [field]: value });
+};
+
+
+const hasErrors = Object.keys(formErrors).length > 0;
+
   const handleUserUpdate = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
-    // Ensure userToEdit has the necessary fields for the API request
     const updatedUserData = {
       user_id: userToEdit.user_id,
       username: userToEdit.username,
@@ -107,14 +182,14 @@ const Allusers = ({ handleLogout, adminData }) => {
       phone: userToEdit.phone,
       country: userToEdit.country,
       state: userToEdit.state,
-
-      modified_by: adminData.admin_name, // Ensure this value is being set properly
+      modified_by: adminData.admin_name,
     };
+
     try {
       const response = await axios.put("/admin/updateuser", updatedUserData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Cache-Control": "no-cache", // Prevent caching issues
+          "Cache-Control": "no-cache",
         },
       });
 
@@ -126,32 +201,23 @@ const Allusers = ({ handleLogout, adminData }) => {
           )
         );
         closeUserEditModal();
-      } else if (response.status === 400) {
-        // Handle 400 status and display the error message from the response
-        toast.error(response.data.message || "An error occurred.");
       } else {
-        toast.error(
-          "Unexpected error: " +
-            (response.data.message || "Something went wrong.")
-        );
+        toast.error(response.data.message || "An error occurred.");
       }
     } catch (error) {
       console.error("Error updating user:", error);
       if (error.response) {
-        console.error("Response error details:", error.response.data);
         toast.error(
-          error.response.data.message ||
-            "An error occurred while updating the user."
+          error.response.data.message || "An error occurred while updating."
         );
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        toast.error("No response from the server.");
       } else {
-        console.error("Error setting up the request:", error.message);
-        toast.error("An error occurred while updating the user.");
+        toast.error("No response from the server.");
       }
     }
   };
+
+  
+
 
   return (
     <div>
@@ -393,257 +459,191 @@ const Allusers = ({ handleLogout, adminData }) => {
         </div>
       )}
 
-      {/* Modal for Editing user */}
-      {showUserEditModal && userToEdit && (
-        <div
-          className="modal"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Edit User</h5>
-                <button
-                  onClick={closeUserEditModal}
-                  className="close"
-                  aria-label="Close"
-                >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <form onSubmit={handleUserUpdate}>
-                <div className="modal-body">
-                  {/* Username Field */}
-                  <div className="form-group">
-                    <label>Username</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={userToEdit.username || ""}
-                      onChange={(e) => {
-                        const input = e.target.value;
-                        if (
-                          /^[A-Za-z0-9]*$/.test(input) &&
-                          input.length <= 15
-                        ) {
-                          setuserToEdit({ ...userToEdit, username: input });
-                        }
-                      }}
-                      placeholder="Enter Username"
-                      maxLength={15}
-                    />
-                    {userToEdit.username &&
-                      !/^[A-Za-z0-9]*$/.test(userToEdit.username) && (
-                        <span style={{ color: "red", fontSize: "12px" }}>
-                          Please enter only alphanumeric characters.
-                        </span>
-                      )}
-                    {userToEdit.username?.length === 15 && (
-                      <span style={{ color: "red", fontSize: "12px" }}>
-                        Maximum length of 15 characters reached.
-                      </span>
-                    )}
-                  </div>
+     {/* Modal for Editing User */}
+{showUserEditModal && userToEdit && (
+  <div
+    className="modal"
+    style={{
+      display: "block",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    }}
+  >
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">Edit User</h5>
+          <button
+            onClick={closeUserEditModal}
+            className="close"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form onSubmit={handleUserUpdate}>
+          <div className="modal-body">
+            {/* Username Field */}
+            <div className="form-group">
+              <label>Username</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.username || ""}
+                required
+                onChange={(e) => handleInputChange("username", e.target.value)}
+                placeholder="Enter Username"
+                maxLength={15}
+              />
+              {formErrors.username && (
+                <small className="text-danger">{formErrors.username}</small>
+              )}
+            </div>
 
-                  {/* Email Field */}
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      value={userToEdit.email_id || ""}
-                      disabled
-                      onChange={(e) =>
-                        setuserToEdit({
-                          ...userToEdit,
-                          email_id: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+            {/* Email Field (Disabled) */}
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                className="form-control"
+                value={userToEdit.email_id || ""}
+                disabled
+              />
+            </div>
 
-                  <div className="form-group">
-                    <label>Password</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={userToEdit.password || ""}
-                      maxLength={15}
-                      onChange={(e) => {
-                        const password = e.target.value;
-                        const passwordRegex =
-                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+            {/* Password Field */}
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.password || ""}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+              />
+              {formErrors.password && (
+                <small className="text-danger">{formErrors.password}</small>
+              )}
+            </div>
 
-                        if (!passwordRegex.test(password)) {
-                          setPasswordError(
-                            "Password must be min of 6 characters long, contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
-                          );
-                        } else {
-                          setPasswordError("");
-                        }
+            {/* Address Field */}
+            <div className="form-group">
+              <label>Address</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.address || ""}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                placeholder="Enter Address"
+                maxLength={100}
+              />
+              {formErrors.address && (
+                <small className="text-danger">{formErrors.address}</small>
+              )}
+            </div>
 
-                        setuserToEdit({
-                          ...userToEdit,
-                          password,
-                        });
-                      }}
-                    />
-                    {passwordError && (
-                      <small className="text-danger">{passwordError}</small>
-                    )}
-                  </div>
+            {/* Pincode Field */}
+            <div className="form-group">
+              <label>Pincode</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.pincode || ""}
+                onChange={(e) => handleInputChange("pincode", e.target.value)}
+                placeholder="Enter Pincode"
+                onKeyPress={(e) => {
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                maxLength={6}
+              />
+              {formErrors.pincode && (
+                <small className="text-danger">{formErrors.pincode}</small>
+              )}
+            </div>
 
-                  {/* Address Field */}
-                  <div className="form-group">
-                    <label>Address</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={userToEdit.address || ""}
-                      onChange={(e) => {
-                        const input = e.target.value;
-                        if (
-                          /^[A-Za-z0-9\s,./]*$/.test(input) &&
-                          input.length <= 100
-                        ) {
-                          setuserToEdit({ ...userToEdit, address: input });
-                        }
-                      }}
-                      placeholder="Enter Address"
-                      maxLength={100}
-                    />
-                    {userToEdit.address &&
-                      !/^[A-Za-z0-9\s,./]*$/.test(userToEdit.address) && (
-                        <span style={{ color: "red", fontSize: "12px" }}>
-                          Please enter only alphanumeric characters, spaces,
-                          commas, periods, or slashes.
-                        </span>
-                      )}
-                    {userToEdit.address?.length === 100 && (
-                      <span style={{ color: "red", fontSize: "12px" }}>
-                        Maximum length of 100 characters reached.
-                      </span>
-                    )}
-                  </div>
-                  {/* Pincode Field */}
-                  <div className="form-group">
-                    <label>Pincode</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={userToEdit.pincode || ""}
-                      onChange={(e) => {
-                        const input = e.target.value;
+            {/* Phone Field */}
+            <div className="form-group">
+              <label>Phone</label>
+              <input
+                type="tel"
+                className="form-control"
+                value={userToEdit.phone || ""}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                placeholder="Enter Phone Number"
+                onKeyPress={(e) => {
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                maxLength={10}
+              />
+              {formErrors.phone && (
+                <small className="text-danger">{formErrors.phone}</small>
+              )}
+            </div>
 
-                        // Allow only numbers and restrict to 6 digits
-                        if (/^\d{0,6}$/.test(input)) {
-                          setuserToEdit({ ...userToEdit, pincode: input });
-                        }
-                      }}
-                      placeholder="Enter Pincode"
-                    />
+            {/* Country Field */}
+            <div className="form-group">
+              <label>Country</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.country || ""}
+                maxLength={20}
+                onChange={(e) => handleInputChange("country", e.target.value)}
+                onKeyPress={(e) => {
+                  if (!/^[a-zA-Z\s]+$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter Country"
+              />
+              {formErrors.country && (
+                <small className="text-danger">{formErrors.country}</small>
+              )}
+            </div>
 
-                    {/* Show error if Pincode is not exactly 6 digits */}
-                    {userToEdit.pincode && userToEdit.pincode.length !== 6 && (
-                      <span style={{ color: "red", fontSize: "12px" }}>
-                        Pincode must be exactly 6 digits.
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Phone Field */}
-                  <div className="form-group">
-                    <label>Phone</label>
-                    <input
-                      type="tel"
-                      className="form-control"
-                      value={userToEdit.phone || ""}
-                      onChange={(e) => {
-                        const input = e.target.value;
-
-                        // Allow only numbers and restrict to 10 digits
-                        if (/^\d{0,10}$/.test(input)) {
-                          setuserToEdit({ ...userToEdit, phone: input });
-                        }
-                      }}
-                      placeholder="Enter Phone Number"
-                    />
-
-                    {/* Show error if Phone Number is not exactly 10 digits */}
-                    {userToEdit.phone && userToEdit.phone.length !== 10 && (
-                      <span style={{ color: "red", fontSize: "12px" }}>
-                        Phone number must be exactly 10 digits.
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Country Field */}
-                  <div className="form-group">
-                    <label>Country</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={userToEdit.country || ""}
-                      onChange={(e) => {
-                        const input = e.target.value;
-                        if (/^[A-Za-z\s]*$/.test(input)) {
-                          setuserToEdit({ ...userToEdit, country: input });
-                        }
-                      }}
-                      placeholder="Enter Country"
-                    />
-                    {userToEdit.country &&
-                      !/^[A-Za-z\s]*$/.test(userToEdit.country) && (
-                        <span style={{ color: "red", fontSize: "12px" }}>
-                          Please enter only alphabetic characters and spaces.
-                        </span>
-                      )}
-                  </div>
-
-                  {/* State Field */}
-                  <div className="form-group">
-                    <label>State</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={userToEdit.state || ""}
-                      onChange={(e) => {
-                        const input = e.target.value;
-                        if (/^[A-Za-z\s]*$/.test(input)) {
-                          setuserToEdit({ ...userToEdit, state: input });
-                        }
-                      }}
-                      placeholder="Enter State"
-                    />
-                    {userToEdit.state &&
-                      !/^[A-Za-z\s]*$/.test(userToEdit.state) && (
-                        <span style={{ color: "red", fontSize: "12px" }}>
-                          Please enter only alphabetic characters and spaces.
-                        </span>
-                      )}
-                  </div>
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={closeUserEditModal}
-                  >
-                    Close
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Save Changes
-                  </button>
-                </div>
-              </form>
+            {/* State Field */}
+            <div className="form-group">
+              <label>State</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.state || ""}
+                maxLength={25}
+                onChange={(e) => handleInputChange("state", e.target.value)}
+                onKeyPress={(e) => {
+                  if (!/^[a-zA-Z\s]+$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter State"
+              />
+              {formErrors.state && (
+                <small className="text-danger">{formErrors.state}</small>
+              )}
             </div>
           </div>
-        </div>
-      )}
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={closeUserEditModal}
+            >
+              Close
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={hasErrors}>
+  Save Changes
+</button>
+
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Toast Container for notifications */}
       <ToastContainer />
