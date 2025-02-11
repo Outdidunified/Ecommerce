@@ -107,18 +107,15 @@ const Allusers = ({ handleLogout, adminData }) => {
       }
     }
   
-    // Address Validation
-    if (field === "address") {
-      if (!/^[A-Za-z0-9\s,./]*$/.test(value)) {
-        errors.address =
-          "Please enter only alphanumeric characters, spaces, commas, periods, or slashes.";
-      } else if (value.length > 100) {
-        errors.address = "Maximum length of 100 characters reached.";
-      } else {
-        delete errors.address;
-      }
-    }
-  
+ // Address Validation
+if (field === "address") {
+  if (value.length > 100) {
+    errors.address = "Maximum length of 100 characters reached.";
+  } else {
+    delete errors.address;
+  }
+}
+
     // Pincode Validation
     if (field === "pincode") {
       if (!/^\d{6}$/.test(value)) {
@@ -518,6 +515,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 className="form-control"
                 value={userToEdit.password || ""}
                 maxLength={15}
+                required
                 onChange={(e) => handleInputChange("password", e.target.value)}
               />
               {formErrors.password && (
@@ -532,6 +530,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 type="text"
                 className="form-control"
                 value={userToEdit.address || ""}
+                required
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 placeholder="Enter Address"
                 maxLength={100}
@@ -549,6 +548,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 className="form-control"
                 value={userToEdit.pincode || ""}
                 onChange={(e) => handleInputChange("pincode", e.target.value)}
+                required
                 placeholder="Enter Pincode"
                 onKeyPress={(e) => {
                   if (!/^\d$/.test(e.key)) {
@@ -570,6 +570,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 className="form-control"
                 value={userToEdit.phone || ""}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
+                required
                 placeholder="Enter Phone Number"
                 onKeyPress={(e) => {
                   if (!/^\d$/.test(e.key)) {
@@ -590,6 +591,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 type="text"
                 className="form-control"
                 value={userToEdit.country || ""}
+                required
                 maxLength={20}
                 onChange={(e) => handleInputChange("country", e.target.value)}
                 onKeyPress={(e) => {
@@ -612,6 +614,7 @@ const hasErrors = Object.keys(formErrors).length > 0;
                 className="form-control"
                 value={userToEdit.state || ""}
                 maxLength={25}
+                required
                 onChange={(e) => handleInputChange("state", e.target.value)}
                 onKeyPress={(e) => {
                   if (!/^[a-zA-Z\s]+$/.test(e.key)) {
