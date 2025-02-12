@@ -98,14 +98,15 @@ const Allusers = ({ handleLogout, adminData }) => {
   
     // Username Validation
     if (field === "username") {
-      if (!/^[A-Za-z0-9]*$/.test(value)) {
-        errors.username = "Please enter only alphanumeric characters.";
+      if (!/^[A-Za-z][A-Za-z0-9]*$/.test(value)) {
+        errors.username = "Username must start with an alphabet and contain only alphanumeric characters.";
       } else if (value.length > 15) {
         errors.username = "Maximum length of 15 characters reached.";
       } else {
         delete errors.username;
       }
     }
+    
   
  // Address Validation
 if (field === "address") {
