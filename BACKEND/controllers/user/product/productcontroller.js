@@ -5,7 +5,7 @@ exports.getProducts = async (req, res) => {
 
   // Validate input
   if (!sub_category_id) {
-    return res.status(400).send({ message: 'sub_category_id is required' });
+    return res.status(400).send({ error:true,message: 'sub_category_id is required' });
   }
 
   try {
@@ -17,7 +17,7 @@ exports.getProducts = async (req, res) => {
 
     // Check if no products were found
     if (results.length === 0) {
-      return res.status(400).send({ message: 'No products found' });
+      return res.status(400).send({error:true, message: 'No products found' });
     }
 
     // Map results into a more structured response
@@ -40,11 +40,11 @@ exports.getProducts = async (req, res) => {
     }));
 
     // Send the response with the filtered products
-    res.status(200).send({ products });
+    res.status(200).send({ error:false,products });
 
   } catch (err) {
     console.error('Error fetching products:', err);
-    return res.status(500).send({ message: 'Error fetching products', error: err.message });
+    return res.status(500).send({error:true, message: 'Error fetching products', error: err.message });
   }
 };
 
@@ -53,7 +53,7 @@ exports.getProductsByCategory = async (req, res) => {
 
   // Validate input
   if (!category_id) {
-    return res.status(400).send({ message: 'category_id is required' });
+    return res.status(400).send({ error:true,message: 'category_id is required' });
   }
 
   try {
@@ -65,7 +65,7 @@ exports.getProductsByCategory = async (req, res) => {
 
     // Check if no products were found
     if (results.length === 0) {
-      return res.status(400).send({ message: 'No products found ' });
+      return res.status(400).send({ error:true,message: 'No products found ' });
     }
 
     // Map results into a more structured response
@@ -88,11 +88,11 @@ exports.getProductsByCategory = async (req, res) => {
     }));
 
     // Send the response with the filtered products
-    res.status(200).send({ products });
+    res.status(200).send({ error:false,products });
 
   } catch (err) {
     console.error('Error fetching products:', err);
-    return res.status(500).send({ message: 'Error fetching products', error: err.message });
+    return res.status(500).send({ error:true,message: 'Error fetching products', error: err.message });
   }
 };
 
@@ -102,7 +102,7 @@ exports.getsubcateg = async (req, res) => {
   const { category_id } = req.body; // Assuming the category_id is sent in the request body
 
   if (!category_id) {
-    return res.status(400).send({ message: 'category_id is required' });
+    return res.status(400).send({ error:true,message: 'category_id is required' });
   }
 
   console.log(`Fetching subcategories for category_id: ${category_id}`);
@@ -118,20 +118,21 @@ exports.getsubcateg = async (req, res) => {
     const [results] = await db.query(query, [category_id]);
 
     if (results.length === 0) {
-      return res.status(400).send({ message: 'No subcategories found' });
+      return res.status(400).send({ error:true,message: 'No subcategories found' });
     }
 
     console.log('Subcategories fetched:', results);
 
     // Return the list of subcategories
     res.status(200).send({
+      message:false,
       message: 'Subcategories retrieved successfully',
       subcategories: results,
     });
 
   } catch (err) {
     console.error('Error fetching subcategories:', err.message);
-    return res.status(500).send({ message: 'Error fetching subcategories', error: err.message });
+    return res.status(500).send({ error:true,message: 'Error fetching subcategories', error: err.message });
   }
 };
 
@@ -144,14 +145,14 @@ exports.getcategory = async (req, res) => {
     const [results] = await db.query(query);
 
     if (results.length === 0) {
-      return res.status(400).json({ message: 'No categories found' });
+      return res.status(400).json({error:true, message: 'No categories found' });
     }
 
-    res.status(200).json({ categories: results });
+    res.status(200).json({ error:false,categories: results });
 
   } catch (err) {
     console.error('Error fetching categories:', err.message);
-    return res.status(500).json({ message: 'Error fetching categories', error: err.message });
+    return res.status(500).json({error:true, message: 'Error fetching categories', error: err.message });
   }
 };
 
@@ -173,7 +174,7 @@ exports.getAllProducts = async (req, res) => {
     const [results] = await db.query(query);
 
     if (results.length === 0) {
-      return res.status(400).send({ message: 'No products found' });
+      return res.status(400).send({error:true, message: 'No products found' });
     }
 
     // Map the result to a structured response
@@ -199,11 +200,11 @@ exports.getAllProducts = async (req, res) => {
       created_date: product.created_date
     }));
 
-    res.status(200).send({ products });
+    res.status(200).send({error:false, products });
 
   } catch (err) {
     console.error('Error fetching products:', err.message);
-    return res.status(500).send({ message: 'Error fetching products', error: err.message });
+    return res.status(500).send({ error:true,message: 'Error fetching products', error: err.message });
   }
 };
 
@@ -212,7 +213,7 @@ exports.searchProducts = async (req, res) => {
   const { searchQuery } = req.body;
 
   if (!searchQuery) {
-    return res.status(400).send({ message: 'Search query is required' });
+    return res.status(400).send({error:true, message: 'Search query is required' });
   }
 
   // SQL query for searching products by name, description, category, or sub-category
@@ -246,7 +247,7 @@ exports.searchProducts = async (req, res) => {
     const [results] = await db.query(query, [searchKeyword, searchKeyword, searchKeyword, searchKeyword]);
 
     if (results.length === 0) {
-      return res.status(404).send({ message: 'No products found' });
+      return res.status(404).send({error:true, message: 'No products found' });
     }
 
     // Format the results
@@ -273,11 +274,11 @@ exports.searchProducts = async (req, res) => {
     }));
 
     // Send the formatted products in the response
-    res.status(200).send({ products });
+    res.status(200).send({ error:false,products });
 
   } catch (err) {
     console.error('Error searching for products:', err.message);
-    return res.status(500).send({ message: 'Error searching for products', error: err.message });
+    return res.status(500).send({error:true, message: 'Error searching for products', error: err.message });
   }
 };
 

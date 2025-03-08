@@ -30,7 +30,7 @@ exports.placeorderfromcart = async (req, res) => {
 
     if (cartItems.length === 0) {
       console.log("Cart is empty for user_id:", user_id);
-      return res.status(400).json({ error: 'Cart is empty' });
+      return res.status(400).json({ error: true,message:'Cart is empty' });
     }
 
     // Calculate total price
@@ -107,6 +107,7 @@ exports.placeorderfromcart = async (req, res) => {
 
     // Return success response
     return res.json({
+      error:false,
       message: 'Order created',
       order_id,
       totalPrice,
@@ -117,7 +118,7 @@ exports.placeorderfromcart = async (req, res) => {
 
   } catch (err) {
     console.error("Error placing order:", err);
-    return res.status(500).json({ error: 'Failed to place order', details: err.message });
+    return res.status(500).json({ error:true,message: 'Failed to place order' });
   }
 };
 
@@ -141,7 +142,7 @@ exports.paymentsuccess = async (req, res) => {
 
     if (expectedSignature !== razorpay_signature) {
       console.error("Payment signature mismatch for payment_id:", razorpay_payment_id);
-      return res.status(400).json({ error: 'Payment signature mismatch' });
+      return res.status(400).json({ error: true, message: 'Payment signature mismatch' });
     }
 
     // Update payment status in DB
@@ -180,7 +181,8 @@ exports.paymentsuccess = async (req, res) => {
         const availableStock = product && product.length > 0 ? product[0].quantity : 0;
         console.error(`Not enough stock for product_id ${product_id}. Available stock: ${availableStock}`);
         return res.status(400).json({
-          error: `Not enough stock for product_id ${product_id}. Available stock: ${availableStock}`
+          error: true,
+          message: `Not enough stock for product_id ${product_id}. Available stock: ${availableStock}`
         });
       }
     }
@@ -191,13 +193,17 @@ exports.paymentsuccess = async (req, res) => {
     console.log("Cart cleared for user_id:", user_id);
 
     // Return success response
-    return res.json({ message: 'Payment successful, order confirmed, and cart cleared' });
+    return res.json({ 
+      error: false,
+      message: 'Payment successful, order confirmed, and cart cleared' 
+    });
 
   } catch (err) {
     console.error('Error during payment success process:', err);
-    return res.status(500).json({ error: 'Error processing payment success', details: err.message });
+    return res.status(500).json({ error: true, message: 'Error processing payment success', details: err.message });
   }
 };
+
 
 
 
@@ -218,11 +224,11 @@ exports.failure = async (req, res) => {
     console.log("Order status updated to 'payment-failure' for order_id:", order_id);
 
     // Return failure response
-    return res.json({ message: 'Payment failed and order canceled' });
+    return res.json({ error: false, message: 'Payment failed and order canceled' });
 
   } catch (err) {
     console.error("Error during payment failure process:", err);
-    return res.status(500).json({ error: 'An error occurred while processing the payment failure', details: err.message });
+    return res.status(500).json({ error: true, message: 'An error occurred while processing the payment failure', details: err.message });
   }
 };
 
@@ -230,7 +236,7 @@ exports.getOrderDetailsForUser = async (req, res) => {
   const { user_id } = req.query;
 
   if (!user_id) {
-    return res.status(400).json({ error: 'User ID is required' });
+    return res.status(400).json({ error: true, message: 'User ID is required' });
   }
 
   const query = `
@@ -276,7 +282,7 @@ exports.getOrderDetailsForUser = async (req, res) => {
     const [result] = await db.query(query, [user_id]);
 
     if (result.length === 0) {
-      return res.status(404).json({ error: 'No orders found for the user with completed payment status' });
+      return res.status(404).json({ error: true, message: 'No orders found for the user with completed payment status' });
     }
 
     // Map the results to the desired format
@@ -336,15 +342,17 @@ exports.getOrderDetailsForUser = async (req, res) => {
 
     // Return the successfully fetched orders
     return res.json({
+      error: false,
       message: 'Order details with completed payments fetched successfully',
       orders: parsedResult,
     });
 
   } catch (err) {
     console.error("Error fetching order details:", err);
-    return res.status(500).json({ error: 'Failed to fetch order details', details: err.message });
+    return res.status(500).json({ error: true, message: 'Failed to fetch order details', details: err.message });
   }
 };
+
 
 
 
