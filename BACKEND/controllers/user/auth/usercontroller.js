@@ -294,17 +294,21 @@ exports.forgotPassword = async (req, res) => {
     const [userResult] = await db.query('SELECT * FROM users WHERE email_id = ?', [email_id]);
 
     if (userResult.length === 0) {
-      return res.status(404).json({ error:true,message: 'User not found' });
+      return res.status(404).json({ error:true, message: 'User not found' });
     }
 
-    // Generate a random OTP (6 digits)
-    const otp = crypto.randomInt(100000, 999999).toString();
+    const user = userResult[0];
 
-    // Store OTP in the database temporarily with an expiry time (e.g., 10 minutes)
+    // Check if the user is an admin (role_id = 1), and restrict if so
+    if (user.role_id !== 1) {
+      return res.status(400).json({ error:true, message: 'Wrong Email Address' });
+    }
+
+    // Generate OTP and send to the user
+    const otp = crypto.randomInt(100000, 999999).toString();
     const expiryTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
     await db.query('UPDATE users SET otp = ?, otp_expiry = ? WHERE email_id = ?', [otp, expiryTime, email_id]);
 
-    // Send OTP to user via email
     const emailResponse = await EmailConfig(email_id, otp);
 
     if (emailResponse) {
@@ -319,16 +323,15 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
+
 exports.verifyOTP = async (req, res) => {
   const { otp } = req.body;  // Only OTP is required
 
-  // Check if OTP is provided
   if (!otp) {
     return res.status(400).json({ error:true,message: 'OTP is required' });
   }
 
   try {
-    // Check if the OTP exists in the database
     const [result] = await db.query('SELECT * FROM users WHERE otp = ?', [otp]);
 
     if (result.length === 0) {
@@ -336,6 +339,11 @@ exports.verifyOTP = async (req, res) => {
     }
 
     const user = result[0];
+
+    // Check if the user is an admin (role_id = 1)
+    if (user.role_id !== 1) {
+      return res.status(403).json({ error:true, message: 'Wrong Email Address' });
+    }
 
     // Check if OTP is expired
     const currentTime = new Date();
@@ -345,12 +353,12 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ error:true,message: 'OTP has expired' });
     }
 
-    // OTP is valid
     return res.status(200).json({ error:false,message: 'OTP verified successfully. You can now reset your password.' });
   } catch (err) {
     return res.status(500).json({ error:true,message: 'Database error', error: err });
   }
 };
+
 exports.resetPassword = async (req, res) => {
   const { email_id, new_password } = req.body;
 
