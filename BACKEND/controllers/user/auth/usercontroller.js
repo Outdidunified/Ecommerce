@@ -301,7 +301,7 @@ exports.forgotPassword = async (req, res) => {
 
     // Check if the user is an admin (role_id = 1), and restrict if so
     if (user.role_id !== 1) {
-      return res.status(400).json({ error:true, message: 'Wrong Email Address' });
+      return res.status(400).json({ error:true, message: 'You are not authorized to Change password' });
     }
 
     // Generate OTP and send to the user
