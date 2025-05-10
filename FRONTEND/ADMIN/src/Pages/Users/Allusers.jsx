@@ -1,0 +1,659 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "remixicon/fonts/remixicon.css";
+import { Link } from "react-router-dom";
+import { ToastContainer, toast } from "react-custom-alert";
+import "react-custom-alert/dist/index.css";
+import Sidebar from "../../Components/Sidebar/Sidebar";
+import Header from "../../Components/Header/Header";
+import Footer from "../../Components/Footer/footer";
+
+const Allusers = ({ handleLogout, adminData }) => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = sessionStorage.getItem("authToken"); // Retrieve token from sessionStorage
+  const [showUserViewModal, setShowUserViewModal] = useState(false);
+  const [userToView, setUserToView] = useState(null);
+  const [showUserEditModal, setshowUserEditModal] = useState(false);
+  const [userToEdit, setuserToEdit] = useState(null);
+
+  const [formErrors, setFormErrors] = useState("");
+  
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/admin/getalluser", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUsers(response.data.users);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [token]);
+
+  const toggleUserStatus = async (user) => {
+    try {
+      const response = await axios.post(
+        "/admin/deleteuser",
+        {
+          user_id: user.user_id,
+          active: user.active ? 0 : 1, // Toggle active status
+          modified_by: adminData.admin_name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        toast.success("User status updated successfully!");
+        // Update the user status and icon
+        setUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u.user_id === user.user_id
+              ? { ...u, active: !user.active } // Toggle active status
+              : u
+          )
+        );
+      } else {
+        toast.error("Failed to update user status!");
+      }
+    } catch (error) {
+      console.error("Error toggling user status:", error);
+      toast.error("An error occurred while updating user status.");
+    }
+  };
+
+  const openUserViewModal = (user) => {
+    setUserToView(user);
+    setShowUserViewModal(true);
+  };
+
+  const closeUserViewModal = () => {
+    setShowUserViewModal(false);
+    setUserToView(null);
+  };
+
+  const openuserEditModal = (user) => {
+    setuserToEdit(user); // Set the user to be edited
+    setshowUserEditModal(true); // Open the modal
+  };
+
+  const closeUserEditModal = () => {
+    setshowUserEditModal(false); // Close the modal
+    setuserToEdit(null); // Clear the user data
+  };
+
+  const handleInputChange = (field, value) => {
+    let errors = { ...formErrors };
+  
+    // Username Validation
+    if (field === "username") {
+      if (!/^[A-Za-z][A-Za-z0-9]*$/.test(value)) {
+        errors.username = "Username must start with an alphabet and contain only alphanumeric characters.";
+      } else if (value.length > 15) {
+        errors.username = "Maximum length of 15 characters reached.";
+      } else {
+        delete errors.username;
+      }
+    }
+    
+  
+ // Address Validation
+if (field === "address") {
+  if (value.length > 100) {
+    errors.address = "Maximum length of 100 characters reached.";
+  } else {
+    delete errors.address;
+  }
+}
+
+    // Pincode Validation
+    if (field === "pincode") {
+      if (!/^\d{6}$/.test(value)) {
+        errors.pincode = "Pincode must be exactly 6 digits.";
+      } else {
+        delete errors.pincode;
+      }
+    }
+  
+    // Phone Number Validation
+    if (field === "phone") {
+      if (!/^\d{10}$/.test(value)) {
+        errors.phone = "Phone number must be exactly 10 digits.";
+      } else {
+        delete errors.phone;
+      }
+    }
+  
+    // Password Validation
+    if (field === "password") {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+  
+      if (!passwordRegex.test(value)) {
+        errors.password =
+          "Password must be at least 6 characters, contain one uppercase, one lowercase, one digit, and one special character.";
+      } else {
+        delete errors.password;
+      }
+    }
+
+      // Country & State Validation (Alphabetic Only)
+  if (field === "country" || field === "state") {
+    if (!/^[A-Za-z\s]*$/.test(value)) {
+      errors[field] = "Please enter only alphabetic characters and spaces.";
+    } else {
+      delete errors[field];
+    }
+  }
+
+  // Update errors and user state
+  setFormErrors(errors);
+  setuserToEdit({ ...userToEdit, [field]: value });
+};
+
+
+const hasErrors = Object.keys(formErrors).length > 0;
+
+  const handleUserUpdate = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    const updatedUserData = {
+      user_id: userToEdit.user_id,
+      username: userToEdit.username,
+      email_id: userToEdit.email_id,
+      password: userToEdit.password,
+      role_id: userToEdit.role_id,
+      user_type: userToEdit.user_type,
+      address: userToEdit.address,
+      pincode: userToEdit.pincode,
+      phone: userToEdit.phone,
+      country: userToEdit.country,
+      state: userToEdit.state,
+      modified_by: adminData.admin_name,
+    };
+
+    try {
+      const response = await axios.put("/admin/updateuser", updatedUserData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (response.status === 200) {
+        toast.success("User updated successfully!");
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user.user_id === userToEdit.user_id ? userToEdit : user
+          )
+        );
+        closeUserEditModal();
+      } else {
+        toast.error(response.data.message || "An error occurred.");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      if (error.response) {
+        toast.error(
+          error.response.data.message || "An error occurred while updating."
+        );
+      } else {
+        toast.error("No response from the server.");
+      }
+    }
+  };
+
+  
+
+
+  return (
+    <div>
+      {/* Page Wrapper Start */}
+      <div className="page-wrapper compact-wrapper" id="pageWrapper">
+        <Header handleLogout={handleLogout} adminData={adminData} />
+        <div className="page-body-wrapper">
+          <Sidebar />
+          <div className="page-body">
+            <div className="container-fluid">
+              <div className="row">
+                <div className="col-sm-12">
+                  <div className="card card-table">
+                    <div className="card-body">
+                      <div className="title-header option-title">
+                        <h5>All Users</h5>
+                        <form className="d-inline-flex">
+                          <Link
+                            to="/adduser"
+                            className="align-items-center btn btn-theme d-flex"
+                          >
+                            <i data-feather="plus"></i>Add New
+                          </Link>
+                        </form>
+                      </div>
+
+                      <div className="table-responsive category-table">
+                        <table
+                          className="table all-package theme-table"
+                          id="table_id"
+                        >
+                          <thead>
+                            <tr>
+                              <th>User ID</th>
+                              <th>Username</th>
+                              <th>Email ID</th>
+                              <th>User Type</th>
+                              <th>Phone</th>
+                              <th>Created By</th>
+                              <th>User status</th>
+                              <th>Option</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {loading ? (
+                              <tr>
+                                <td colSpan="7" className="text-center">
+                                  Loading...
+                                </td>
+                              </tr>
+                            ) : users.length > 0 ? (
+                              users.map((user) => (
+                                <tr key={user.user_id}>
+                                  <td>{user.user_id}</td>
+                                  <td>{user.username}</td>
+                                  <td>{user.email_id}</td>
+                                  <td>{user.user_type}</td>
+                                  <td>{user.phone}</td>
+                                  <td>{user.created_by}</td>
+                                  <td
+                                    style={{
+                                      color: user.active ? "green" : "red", // Green for Active, Red for Inactive
+                                    }}
+                                  >
+                                    {user.active ? "Active" : "Inactive"}
+                                  </td>
+                                  <td>
+                                    <ul>
+                                      <li>
+                                        <button
+                                          onClick={() =>
+                                            openUserViewModal(user)
+                                          }
+                                          className="btn btn-link"
+                                          aria-label="View user"
+                                          style={{
+                                            textDecoration: "none",
+                                            color: "#000000", // Black color for the View button
+                                            fontSize: "20px", // Increased font size
+                                            padding: "10px", // Increased padding for larger button area
+                                          }}
+                                        >
+                                          <i className="ri-eye-line"></i>{" "}
+                                          {/* Eye Icon for View */}
+                                        </button>
+                                      </li>
+
+                                      <td>
+                                        <ul>
+                                          <li>
+                                            <button
+                                              onClick={() =>
+                                                openuserEditModal(user)
+                                              }
+                                              className="btn btn-link"
+                                              aria-label="Edit user"
+                                              style={{
+                                                textDecoration: "none",
+                                                color: "#007bff", // Blue color for Edit button
+                                                fontSize: "20px", // Increased font size
+                                                padding: "10px",
+                                              }}
+                                            >
+                                              <i className="ri-pencil-line"></i>{" "}
+                                              {/* Pen Icon for Edit */}
+                                            </button>
+                                          </li>
+                                        </ul>
+                                      </td>
+
+                                      <li>
+                                        <button
+                                          onClick={() => toggleUserStatus(user)}
+                                          className="btn btn-link"
+                                          aria-label="Activate/Deactivate user"
+                                          style={{
+                                            textDecoration: "none",
+                                            color: user.active
+                                              ? "red"
+                                              : "green", // Red if Active, Green if Inactive
+                                            fontSize: "20px", // Increased font size
+                                            padding: "10px",
+                                          }}
+                                        >
+                                          <i
+                                            className={
+                                              user.active
+                                                ? "ri-delete-bin-line" // Bin icon for delete (Active)
+                                                : "ri-add-line" // Add icon for add (Inactive)
+                                            }
+                                          ></i>
+                                        </button>
+                                      </li>
+                                    </ul>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="7" className="text-center">
+                                  No users found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Footer />
+          </div>
+        </div>
+      </div>
+
+      {/* Modal for Viewing User */}
+      {showUserViewModal && userToView && (
+        <div
+          className="modal"
+          style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">View User</h5>
+                <button
+                  onClick={closeUserViewModal}
+                  className="close"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div className="modal-body">
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <div>
+                    <strong>User ID:</strong> {userToView.user_id}
+                  </div>
+                  <div>
+                    <strong>Username:</strong> {userToView.username}
+                  </div>
+                  <div>
+                    <strong>Email ID:</strong> {userToView.email_id}
+                  </div>
+                  <div>
+                    <strong>Password:</strong> {userToView.password}
+                  </div>
+                  <div>
+                    <strong>Role ID:</strong> {userToView.role_id}
+                  </div>
+                  <div>
+                    <strong>Address:</strong> {userToView.address || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Pincode:</strong> {userToView.pincode || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Phone:</strong> {userToView.phone || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Country:</strong> {userToView.country || "N/A"}
+                  </div>
+                  <div>
+                    <strong>State:</strong> {userToView.state || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Created By:</strong>{" "}
+                    {userToView.created_by || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Created Date:</strong>{" "}
+                    {new Date(userToView.created_date).toLocaleString()}
+                  </div>
+                  <div>
+                    <strong>Modified By:</strong> {userToView.modified_by}
+                  </div>
+                  <div>
+                    <strong>Modified Date:</strong>{" "}
+                    {new Date(userToView.modified_date).toLocaleString()}
+                  </div>
+                  <div>
+                    <strong>User Type:</strong> {userToView.user_type}
+                  </div>
+                  <div>
+                    <strong>Active:</strong> {userToView.active ? "Yes" : "No"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+     {/* Modal for Editing User */}
+{showUserEditModal && userToEdit && (
+  <div
+    className="modal"
+    style={{
+      display: "block",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    }}
+  >
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">Edit User</h5>
+          <button
+            onClick={closeUserEditModal}
+            className="close"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form onSubmit={handleUserUpdate}>
+          <div className="modal-body">
+            {/* Username Field */}
+            <div className="form-group">
+              <label>Username</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.username || ""}
+                required
+                onChange={(e) => handleInputChange("username", e.target.value)}
+                placeholder="Enter Username"
+                maxLength={15}
+              />
+              {formErrors.username && (
+                <small className="text-danger">{formErrors.username}</small>
+              )}
+            </div>
+
+            {/* Email Field (Disabled) */}
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                className="form-control"
+                value={userToEdit.email_id || ""}
+                disabled
+              />
+            </div>
+
+            {/* Password Field */}
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.password || ""}
+                maxLength={15}
+                required
+                onChange={(e) => handleInputChange("password", e.target.value)}
+              />
+              {formErrors.password && (
+                <small className="text-danger">{formErrors.password}</small>
+              )}
+            </div>
+
+            {/* Address Field */}
+            <div className="form-group">
+              <label>Address</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.address || ""}
+                required
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                placeholder="Enter Address"
+                maxLength={100}
+              />
+              {formErrors.address && (
+                <small className="text-danger">{formErrors.address}</small>
+              )}
+            </div>
+
+            {/* Pincode Field */}
+            <div className="form-group">
+              <label>Pincode</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.pincode || ""}
+                onChange={(e) => handleInputChange("pincode", e.target.value)}
+                required
+                placeholder="Enter Pincode"
+                onKeyPress={(e) => {
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                maxLength={6}
+              />
+              {formErrors.pincode && (
+                <small className="text-danger">{formErrors.pincode}</small>
+              )}
+            </div>
+
+            {/* Phone Field */}
+            <div className="form-group">
+              <label>Phone</label>
+              <input
+                type="tel"
+                className="form-control"
+                value={userToEdit.phone || ""}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                required
+                placeholder="Enter Phone Number"
+                onKeyPress={(e) => {
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                maxLength={10}
+              />
+              {formErrors.phone && (
+                <small className="text-danger">{formErrors.phone}</small>
+              )}
+            </div>
+
+            {/* Country Field */}
+            <div className="form-group">
+              <label>Country</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.country || ""}
+                required
+                maxLength={20}
+                onChange={(e) => handleInputChange("country", e.target.value)}
+                onKeyPress={(e) => {
+                  if (!/^[a-zA-Z\s]+$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter Country"
+              />
+              {formErrors.country && (
+                <small className="text-danger">{formErrors.country}</small>
+              )}
+            </div>
+
+            {/* State Field */}
+            <div className="form-group">
+              <label>State</label>
+              <input
+                type="text"
+                className="form-control"
+                value={userToEdit.state || ""}
+                maxLength={25}
+                required
+                onChange={(e) => handleInputChange("state", e.target.value)}
+                onKeyPress={(e) => {
+                  if (!/^[a-zA-Z\s]+$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter State"
+              />
+              {formErrors.state && (
+                <small className="text-danger">{formErrors.state}</small>
+              )}
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={closeUserEditModal}
+            >
+              Close
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={hasErrors}>
+  Save Changes
+</button>
+
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
+
+
+      {/* Toast Container for notifications */}
+      <ToastContainer />
+    </div>
+  );
+};
+
+export default Allusers;
